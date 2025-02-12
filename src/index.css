@@ -1,4 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+}
 
 html,
 body,
@@ -8,6 +16,11 @@ body,
   width: 100%;
   font-family: "Inter", sans-serif;
   background-color: #1f2026;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
 }
 
 ::-webkit-scrollbar {
@@ -24,4 +37,18 @@ body,
 
 ::-webkit-scrollbar-track:hover {
   background: #2a2b2f;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }
