@@ -1,52 +1,41 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
 import PixIcon from "@mui/icons-material/Pix";
-import { Box, Typography, useTheme } from "@mui/material";
+import { AppBar, Box, IconButton, Toolbar, Typography, useTheme } from "@mui/material";
 import FlexBetween from "@/components/FlexBetween";
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 
-type Props = {};
-
-const Navbar = (props: Props) => {
+const Navbar = () => {
   const { palette } = useTheme();
-  const [selected, setSelected] = useState("dashboard");
-  return (
-    <FlexBetween mb="0.25rem" p="0.5rem 0rem" color={palette.grey[300]}>
-      {/* LEFT SIDE */}
-      <FlexBetween gap="0.75rem">
-        <PixIcon sx={{ fontSize: "28px" }} />
-        <Typography variant="h4" fontSize="16px">
-          Finanseer
-        </Typography>
-      </FlexBetween>
 
-      {/* RIGHT SIDE */}
-      <FlexBetween gap="2rem">
-        <Box sx={{ "&:hover": { color: palette.primary[100] } }}>
-          <Link
-            to="/"
-            onClick={() => setSelected("dashboard")}
-            style={{
-              color: selected === "dashboard" ? "inherit" : palette.grey[700],
-              textDecoration: "inherit",
-            }}
-          >
-            dashboard
-          </Link>
+  return (
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        bgcolor: "background.paper",
+        boxShadow: 1,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+      }}
+    >
+      <Toolbar>
+        <FlexBetween>
+          <Box display="flex" alignItems="center" gap={1}>
+            <PixIcon sx={{ fontSize: 28, color: palette.primary.main }} />
+            <Typography variant="h4" fontSize={20} color={palette.grey[800]} fontWeight="bold">
+              Finanseer
+            </Typography>
+          </Box>
+        </FlexBetween>
+
+        <Box display="flex" gap={2}>
+          <IconButton>
+            <NotificationsNoneIcon />
+          </IconButton>
+          <IconButton>
+            <PersonOutlineIcon />
+          </IconButton>
         </Box>
-        <Box sx={{ "&:hover": { color: palette.primary[100] } }}>
-          <Link
-            to="/predictions"
-            onClick={() => setSelected("predictions")}
-            style={{
-              color: selected === "predictions" ? "inherit" : palette.grey[700],
-              textDecoration: "inherit",
-            }}
-          >
-            predictions
-          </Link>
-        </Box>
-      </FlexBetween>
-    </FlexBetween>
+      </Toolbar>
+    </AppBar>
   );
 };
 
