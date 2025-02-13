@@ -8,6 +8,9 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import SavingsIcon from '@mui/icons-material/Savings';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HomeIcon from '@mui/icons-material/Home';
+import InsightsIcon from '@mui/icons-material/Insights';
+import DiamondIcon from '@mui/icons-material/Diamond';
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -17,10 +20,9 @@ const Sidebar = () => {
   const theme = useTheme();
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Analytics', icon: <ShowChartIcon />, path: '/predictions' },
-    { text: 'Wallet', icon: <AccountBalanceWalletIcon />, path: '/wallet' },
-    { text: 'Payments', icon: <PaymentsIcon />, path: '/payments' },
+    { text: 'Home', icon: <HomeIcon />, path: '/landing' },
+    { text: 'Insights', icon: <InsightsIcon />, path: '/insights' },
+    { text: 'Treasures', icon: <DiamondIcon />, path: '/treasures' },
     { text: 'Savings', icon: <SavingsIcon />, path: '/savings' },
   ];
 

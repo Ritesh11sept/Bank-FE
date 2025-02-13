@@ -10,6 +10,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import Sidebar from "./Sidebar";
+import Navbar from "@/scenes/navbar";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -91,6 +92,7 @@ const Landing = () => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Navbar />
       <Sidebar />
       <Box
         component="main"
