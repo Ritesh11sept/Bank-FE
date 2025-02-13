@@ -1,9 +1,13 @@
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Typography, useTheme } from "@mui/material";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Typography, useTheme, Divider } from "@mui/material";
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
-import { useState } from "react";
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import SavingsIcon from '@mui/icons-material/Savings';
+import SettingsIcon from '@mui/icons-material/Settings';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -14,50 +18,106 @@ const Sidebar = () => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Predictions', icon: <ShowChartIcon />, path: '/predictions' },
+    { text: 'Analytics', icon: <ShowChartIcon />, path: '/predictions' },
+    { text: 'Wallet', icon: <AccountBalanceWalletIcon />, path: '/wallet' },
+    { text: 'Payments', icon: <PaymentsIcon />, path: '/payments' },
+    { text: 'Savings', icon: <SavingsIcon />, path: '/savings' },
   ];
 
-  const drawerWidth = 240;
+  const bottomMenuItems = [
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    { text: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
+  ];
 
-  const drawer = (
-    <Box sx={{ 
-      height: '100%', 
-      bgcolor: theme.palette.background.paper,
-      pt: '64px', // Add top padding for navbar
-    }}>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
+  const DrawerContent = () => (
+    <Box
+      sx={{
+        height: '100%',
+        bgcolor: 'background.paper',
+        pt: '64px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <List sx={{ px: 2 }}>
+        {menuItems.map((item, index) => (
+          <motion.div
             key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-            sx={{
-              my: 0.5,
-              mx: 1,
-              borderRadius: 2,
-              bgcolor: location.pathname === item.path ? 'primary.main' : 'transparent',
-              color: location.pathname === item.path ? 'common.white' : 'text.primary',
-              '&:hover': {
-                bgcolor: location.pathname === item.path 
-                  ? 'primary.dark'
-                  : 'primary.light',
-                color: location.pathname === item.path 
-                  ? 'common.white'
-                  : 'primary.main',
-              },
-            }}
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: index * 0.1 }}
           >
-            <ListItemIcon sx={{ 
-              color: location.pathname === item.path ? 'common.white' : 'primary.main',
-              minWidth: 40 
-            }}>
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
+            <ListItem
+              button
+              onClick={() => {
+                navigate(item.path);
+                setMobileOpen(false);
+              }}
+              sx={{
+                my: 0.5,
+                borderRadius: 2,
+                bgcolor: location.pathname === item.path 
+                  ? `${theme.palette.primary.main}15`
+                  : 'transparent',
+                color: location.pathname === item.path 
+                  ? theme.palette.primary.main
+                  : 'text.primary',
+                '&:hover': {
+                  bgcolor: `${theme.palette.primary.main}25`,
+                  transform: 'translateX(8px)',
+                  transition: 'transform 0.2s ease-in-out',
+                },
+              }}
+            >
+              <ListItemIcon sx={{
+                minWidth: 40,
+                color: location.pathname === item.path
+                  ? theme.palette.primary.main
+                  : 'text.secondary'
+              }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontWeight: location.pathname === item.path ? 600 : 400
+                }}
+              />
+            </ListItem>
+          </motion.div>
+        ))}
+      </List>
+
+      <Divider sx={{ my: 2 }} />
+
+      <List sx={{ px: 2, mt: 'auto', mb: 2 }}>
+        {bottomMenuItems.map((item, index) => (
+          <motion.div
+            key={item.text}
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: (menuItems.length + index) * 0.1 }}
+          >
+            <ListItem
+              button
+              onClick={() => {
+                navigate(item.path);
+                setMobileOpen(false);
+              }}
+              sx={{
+                my: 0.5,
+                borderRadius: 2,
+                '&:hover': {
+                  bgcolor: `${theme.palette.primary.main}15`,
+                }
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          </motion.div>
         ))}
       </List>
     </Box>
@@ -80,31 +140,30 @@ const Sidebar = () => {
         ModalProps={{ keepMounted: true }}
         sx={{
           display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          '& .MuiDrawer-paper': {
             width: 240,
             borderRight: 'none',
-            boxShadow: 3,
+            boxShadow: theme.shadows[3],
+            bgcolor: 'background.paper',
           },
         }}
       >
-        {drawer}
+        <DrawerContent />
       </Drawer>
       <Drawer
         variant="permanent"
         sx={{
           display: { xs: 'none', sm: 'block' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          '& .MuiDrawer-paper': {
             width: 240,
             borderRight: 'none',
-            boxShadow: 3,
+            boxShadow: theme.shadows[3],
             bgcolor: 'background.paper',
           },
         }}
         open
       >
-        {drawer}
+        <DrawerContent />
       </Drawer>
     </Box>
   );
