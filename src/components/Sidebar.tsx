@@ -5,6 +5,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PaymentsIcon from '@mui/icons-material/Payments';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 import SavingsIcon from '@mui/icons-material/Savings';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
@@ -21,9 +22,10 @@ const Sidebar = () => {
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/landing' },
-    { text: 'Insights', icon: <InsightsIcon />, path: '/insights' },
+    { text: 'Insights', icon: <InsightsIcon />, path: '/predictions' },
     { text: 'Treasures', icon: <DiamondIcon />, path: '/treasures' },
     { text: 'Savings', icon: <SavingsIcon />, path: '/savings' },
+    { text: 'Dashboard', icon: < AnalyticsIcon />, path: '/dashboard' },
   ];
 
   const bottomMenuItems = [
@@ -39,6 +41,10 @@ const Sidebar = () => {
         pt: '64px',
         display: 'flex',
         flexDirection: 'column',
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
       }}
     >
       <List sx={{ px: 2 }}>
@@ -59,13 +65,13 @@ const Sidebar = () => {
                 my: 0.5,
                 borderRadius: 2,
                 bgcolor: location.pathname === item.path 
-                  ? `${theme.palette.primary.main}15`
+                  ? 'rgba(16, 185, 129, 0.1)'
                   : 'transparent',
                 color: location.pathname === item.path 
-                  ? theme.palette.primary.main
+                  ? '#10B981'
                   : 'text.primary',
                 '&:hover': {
-                  bgcolor: `${theme.palette.primary.main}25`,
+                  bgcolor: 'rgba(16, 185, 129, 0.05)',
                   transform: 'translateX(8px)',
                   transition: 'transform 0.2s ease-in-out',
                 },
@@ -74,7 +80,7 @@ const Sidebar = () => {
               <ListItemIcon sx={{
                 minWidth: 40,
                 color: location.pathname === item.path
-                  ? theme.palette.primary.main
+                  ? '#10B981'
                   : 'text.secondary'
               }}>
                 {item.icon}

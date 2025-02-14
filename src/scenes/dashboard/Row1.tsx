@@ -64,6 +64,21 @@ const Row1 = () => {
     );
   }, [data]);
 
+  const gradientColors = {
+    revenue: {
+      start: '#10B981',
+      end: 'rgba(16, 185, 129, 0.1)',
+    },
+    expenses: {
+      start: '#6366F1',
+      end: 'rgba(99, 102, 241, 0.1)',
+    },
+    profit: {
+      start: '#3B82F6',
+      end: 'rgba(59, 130, 246, 0.1)',
+    },
+  };
+
   return (
     <>
       {isLoading ? (
@@ -92,47 +107,31 @@ const Row1 = () => {
               >
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={palette.primary[300]}
-                      stopOpacity={0.5}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={palette.primary[300]}
-                      stopOpacity={0}
-                    />
+                    <stop offset="5%" stopColor={gradientColors.revenue.start} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={gradientColors.revenue.end} stopOpacity={0.2} />
                   </linearGradient>
                   <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={palette.primary[300]}
-                      stopOpacity={0.5}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={palette.primary[300]}
-                      stopOpacity={0}
-                    />
+                    <stop offset="5%" stopColor={gradientColors.expenses.start} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={gradientColors.expenses.end} stopOpacity={0.2} />
                   </linearGradient>
                 </defs>
                 <XAxis
                   dataKey="name"
                   tickLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
                 <YAxis
                   tickLine={false}
                   axisLine={{ strokeWidth: "0" }}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                   domain={[8000, 23000]}
                 />
-                <Tooltip />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }} />
                 <Area
                   type="monotone"
                   dataKey="revenue"
                   dot={true}
-                  stroke={palette.primary.main}
+                  stroke={gradientColors.revenue.start}
                   fillOpacity={1}
                   fill="url(#colorRevenue)"
                 />
@@ -140,7 +139,7 @@ const Row1 = () => {
                   type="monotone"
                   dataKey="expenses"
                   dot={true}
-                  stroke={palette.primary.main}
+                  stroke={gradientColors.expenses.start}
                   fillOpacity={1}
                   fill="url(#colorExpenses)"
                 />
@@ -165,26 +164,26 @@ const Row1 = () => {
                   bottom: 55,
                 }}
               >
-                <CartesianGrid vertical={false} stroke={palette.grey[800]} />
+                <CartesianGrid vertical={false} stroke="#E5E7EB" />
                 <XAxis
                   dataKey="name"
                   tickLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
                 <YAxis
                   yAxisId="left"
                   tickLine={false}
                   axisLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
                 <YAxis
                   yAxisId="right"
                   orientation="right"
                   tickLine={false}
                   axisLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
-                <Tooltip />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }} />
                 <Legend
                   height={20}
                   wrapperStyle={{
@@ -195,13 +194,13 @@ const Row1 = () => {
                   yAxisId="left"
                   type="monotone"
                   dataKey="profit"
-                  stroke={palette.tertiary[500]}
+                  stroke={gradientColors.profit.start}
                 />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="revenue"
-                  stroke={palette.primary.main}
+                  stroke={gradientColors.revenue.start}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -228,30 +227,30 @@ const Row1 = () => {
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
-                      stopColor={palette.primary[300]}
+                      stopColor={gradientColors.revenue.start}
                       stopOpacity={0.8}
                     />
                     <stop
                       offset="95%"
-                      stopColor={palette.primary[300]}
+                      stopColor={gradientColors.revenue.end}
                       stopOpacity={0}
                     />
                   </linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} stroke={palette.grey[800]} />
+                <CartesianGrid vertical={false} stroke="#E5E7EB" />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  style={{ fontSize: "10px" }}
+                  style={{ fontSize: "10px", fill: '#666666' }}
                 />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="url(#colorRevenue)" />
+                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }} />
+                <Bar dataKey="revenue" fill={gradientColors.revenue.start} />
               </BarChart>
             </ResponsiveContainer>
           </DashboardBox>

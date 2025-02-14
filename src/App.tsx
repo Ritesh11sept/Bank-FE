@@ -4,7 +4,7 @@ import { createTheme } from "@mui/material/styles";
 import { useMemo } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { themeSettings } from "./theme";
-import Dashboard from "@/scenes/dashboard/dasboard";
+import Dashboard from "@/scenes/dashboard/dashboard";
 import Predictions from "@/scenes/prediction";
 import Home from "./components/Home";
 import Landing from "./components/Landing";

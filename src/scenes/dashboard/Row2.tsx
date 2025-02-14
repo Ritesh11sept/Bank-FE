@@ -27,7 +27,7 @@ const pieData = [
 
 const Row2 = () => {
   const { palette } = useTheme();
-  const pieColors = [palette.primary[800], palette.primary[300]];
+  const pieColors = ['#10B981', '#6366F1', '#3B82F6'];
   const { data: operationalData } = useGetKpisQuery();
   const { data: productData } = useGetProductsQuery();
 
@@ -59,12 +59,20 @@ const Row2 = () => {
     );
   }, [productData]);
 
+  const chartColors = {
+    text: '#1E293B',
+    subtext: '#64748B',
+    grid: '#E2E8F0',
+    accent: ['#10B981', '#6366F1', '#3B82F6'],
+  };
+
   return (
     <>
       <DashboardBox gridArea="d">
         <BoxHeader
           title="Operational vs Non-Operational Expenses"
           sideText="+4%"
+          titleStyles={{ color: chartColors.text }}
         />
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
@@ -76,38 +84,46 @@ const Row2 = () => {
               bottom: 55,
             }}
           >
-            <CartesianGrid vertical={false} stroke={palette.grey[800]} />
+            <CartesianGrid vertical={false} stroke={chartColors.grid} />
             <XAxis
               dataKey="name"
               tickLine={false}
-              style={{ fontSize: "10px" }}
+              style={{ fontSize: "10px", fill: chartColors.text }}
             />
             <YAxis
               yAxisId="left"
               orientation="left"
               tickLine={false}
               axisLine={false}
-              style={{ fontSize: "10px" }}
+              style={{ fontSize: "10px", fill: chartColors.text }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               tickLine={false}
               axisLine={false}
-              style={{ fontSize: "10px" }}
+              style={{ fontSize: "10px", fill: chartColors.text }}
             />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: `1px solid ${chartColors.grid}`,
+                borderRadius: '8px',
+                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'
+              }}
+              labelStyle={{ color: chartColors.text, fontWeight: 600 }}
+            />
             <Line
               yAxisId="left"
               type="monotone"
               dataKey="Non Operational Expenses"
-              stroke={palette.tertiary[500]}
+              stroke={chartColors.accent[1]}
             />
             <Line
               yAxisId="right"
               type="monotone"
               dataKey="Operational Expenses"
-              stroke={palette.primary.main}
+              stroke={chartColors.accent[0]}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -170,14 +186,14 @@ const Row2 = () => {
               left: -10,
             }}
           >
-            <CartesianGrid stroke={palette.grey[800]} />
+            <CartesianGrid stroke={chartColors.grid} />
             <XAxis
               type="number"
               dataKey="price"
               name="price"
               axisLine={false}
               tickLine={false}
-              style={{ fontSize: "10px" }}
+              style={{ fontSize: "10px", fill: chartColors.text }}
               tickFormatter={(v) => `$${v}`}
             />
             <YAxis
@@ -186,7 +202,7 @@ const Row2 = () => {
               name="expense"
               axisLine={false}
               tickLine={false}
-              style={{ fontSize: "10px" }}
+              style={{ fontSize: "10px", fill: chartColors.text }}
               tickFormatter={(v) => `$${v}`}
             />
             <ZAxis type="number" range={[20]} />
@@ -194,7 +210,7 @@ const Row2 = () => {
             <Scatter
               name="Product Expense Ratio"
               data={productExpenseData}
-              fill={palette.tertiary[500]}
+              fill={chartColors.accent[0]}
             />
           </ScatterChart>
         </ResponsiveContainer>

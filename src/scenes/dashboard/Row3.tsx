@@ -13,7 +13,7 @@ import { Cell, Pie, PieChart } from "recharts";
 
 const Row3 = () => {
   const { palette } = useTheme();
-  const pieColors = [palette.primary[800], palette.primary[500]];
+  const pieColors = ['#10B981', '#6366F1'];
 
   const { data: kpiData } = useGetKpisQuery();
   const { data: productData } = useGetProductsQuery();
@@ -85,12 +85,24 @@ const Row3 = () => {
     },
   ];
 
+  const chartColors = {
+    text: '#1E293B',
+    subtext: '#64748B',
+    border: '#E2E8F0',
+    accent: ['#10B981', '#6366F1'],
+    background: {
+      header: 'rgba(16, 185, 129, 0.1)',
+      hover: 'rgba(16, 185, 129, 0.05)'
+    }
+  };
+
   return (
     <>
       <DashboardBox gridArea="g">
-        <BoxHeader
-          title="List of Products"
+        <BoxHeader 
+          title="List of Products" 
           sideText={`${productData?.length} products`}
+          titleStyles={{ color: chartColors.text }}
         />
         <Box
           mt="0.5rem"
@@ -98,18 +110,40 @@ const Row3 = () => {
           height="75%"
           sx={{
             "& .MuiDataGrid-root": {
-              color: palette.grey[300],
+              color: chartColors.text,
               border: "none",
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: chartColors.background.hover
+              }
             },
             "& .MuiDataGrid-cell": {
-              borderBottom: `1px solid ${palette.grey[800]} !important`,
+              borderBottom: `1px solid ${chartColors.border} !important`,
+              color: chartColors.subtext,
+              fontSize: "13px"
             },
             "& .MuiDataGrid-columnHeaders": {
-              borderBottom: `1px solid ${palette.grey[800]} !important`,
+              borderBottom: `1px solid ${chartColors.border} !important`,
+              backgroundColor: chartColors.background.header,
+              color: chartColors.text,
+              fontWeight: 600
             },
             "& .MuiDataGrid-columnSeparator": {
-              visibility: "hidden",
+              visibility: "hidden"
             },
+            "&::-webkit-scrollbar": {
+              width: "8px",
+              height: "8px"
+            },
+            "&::-webkit-scrollbar-track": {
+              background: chartColors.border
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#34D399", // Updated to emerald-400
+              borderRadius: "4px",
+              "&:hover": {
+                background: "#10B981" // Darker shade on hover
+              }
+            }
           }}
         >
           <DataGrid
@@ -125,6 +159,7 @@ const Row3 = () => {
         <BoxHeader
           title="Recent Orders"
           sideText={`${transactionData?.length} latest transactions`}
+          titleStyles={{ color: chartColors.text }}
         />
         <Box
           mt="1rem"
@@ -132,18 +167,40 @@ const Row3 = () => {
           height="80%"
           sx={{
             "& .MuiDataGrid-root": {
-              color: palette.grey[300],
+              color: chartColors.text,
               border: "none",
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: chartColors.background.hover
+              }
             },
             "& .MuiDataGrid-cell": {
-              borderBottom: `1px solid ${palette.grey[800]} !important`,
+              borderBottom: `1px solid ${chartColors.border} !important`,
+              color: chartColors.subtext,
+              fontSize: "13px"
             },
             "& .MuiDataGrid-columnHeaders": {
-              borderBottom: `1px solid ${palette.grey[800]} !important`,
+              borderBottom: `1px solid ${chartColors.border} !important`,
+              backgroundColor: chartColors.background.header,
+              color: chartColors.text,
+              fontWeight: 600
             },
             "& .MuiDataGrid-columnSeparator": {
-              visibility: "hidden",
+              visibility: "hidden"
             },
+            "&::-webkit-scrollbar": {
+              width: "8px",
+              height: "8px"
+            },
+            "&::-webkit-scrollbar-track": {
+              background: chartColors.border
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#34D399", // Updated to emerald-400
+              borderRadius: "4px",
+              "&:hover": {
+                background: "#10B981" // Darker shade on hover
+              }
+            }
           }}
         >
           <DataGrid
@@ -181,21 +238,21 @@ const Row3 = () => {
       </DashboardBox>
       <DashboardBox gridArea="j">
         <BoxHeader
-          title="Overall Summary and Explanation Data"
+          title="Overall Summary"
           sideText="+15%"
         />
         <Box
           height="15px"
           margin="1.25rem 1rem 0.4rem 1rem"
-          bgcolor={palette.primary[800]}
+          bgcolor="#E5E7EB"
           borderRadius="1rem"
         >
           <Box
             height="15px"
-            bgcolor={palette.primary[600]}
+            bgcolor="#10B981"
             borderRadius="1rem"
             width="40%"
-          ></Box>
+          />
         </Box>
         <Typography margin="0 1rem" variant="h6">
           Orci aliquam enim vel diam. Venenatis euismod id donec mus lorem etiam

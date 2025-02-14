@@ -11,6 +11,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import Sidebar from "./Sidebar";
 import Navbar from "@/scenes/navbar";
+import BaseLayout from "./BaseLayout";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -91,126 +92,135 @@ const Landing = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Navbar />
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - 240px)` },
-          ml: { xs: 0, sm: '240px' },
-          mt: '64px',
-        }}
-      >
-        <Container maxWidth="xl">
-          <Box sx={{ py: 4 }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Typography
-                variant="h3"
-                gutterBottom
-                sx={{ 
-                  mb: 4, 
-                  fontWeight: "bold",
-                  background: 'linear-gradient(45deg, #2196F3, #4CAF50)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}
+    <BaseLayout>
+      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#ffffff' }}>
+        <Navbar />
+        <Sidebar />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            width: { sm: `calc(100% - 240px)` },
+            ml: { xs: 0, sm: '240px' },
+            mt: '64px',
+            bgcolor: '#ffffff',
+          }}
+        >
+          <Container maxWidth="xl">
+            <Box sx={{ py: 4 }}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                Welcome Back, User!
-              </Typography>
+                <Typography
+                  variant="h3"
+                  gutterBottom
+                  sx={{ 
+                    mb: 4, 
+                    fontWeight: "bold",
+                    background: 'linear-gradient(135deg, #10B981, #059669)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  Welcome Back, User!
+                </Typography>
 
-              <Grid container spacing={3}>
-                {cards.map((card, index) => (
-                  <Grid item xs={12} md={6} lg={3} key={card.title}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Card
-                        component={motion.div}
-                        whileHover={{ 
-                          scale: 1.02,
-                          boxShadow: '0 8px 40px rgba(0,0,0,0.12)'
-                        }}
-                        whileTap={{ scale: 0.98 }}
-                        sx={{
-                          p: 3,
-                          height: '100%',
-                          cursor: 'pointer',
-                          background: `linear-gradient(135deg, ${card.color}08, ${card.color}15)`,
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid',
-                          borderColor: `${card.color}20`,
-                          borderRadius: 4,
-                        }}
-                        onClick={() => navigate(card.path)}
+                <Grid container spacing={3}>
+                  {cards.map((card, index) => (
+                    <Grid item xs={12} md={6} lg={3} key={card.title}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                          <IconButton
-                            sx={{
-                              bgcolor: `${card.color}15`,
-                              color: card.color,
-                              '&:hover': { bgcolor: `${card.color}25` }
-                            }}
-                            size="large"
-                          >
-                            {card.icon}
-                          </IconButton>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              px: 1.5,
-                              py: 0.5,
-                              borderRadius: 5,
-                              bgcolor: card.stats.change.includes('+') ? 'success.lighter' : 'error.lighter',
-                              color: card.stats.change.includes('+') ? 'success.main' : 'error.main',
-                            }}
-                          >
-                            {card.stats.change}
-                          </Typography>
-                        </Box>
-
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                          {card.title}
-                        </Typography>
-                        
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          {card.description}
-                        </Typography>
-
-                        <Typography variant="h5" sx={{ mb: 1, fontWeight: 'medium' }}>
-                          {card.stats.value}
-                        </Typography>
-
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={card.progress}
+                        <Card
+                          component={motion.div}
+                          whileHover={{ 
+                            scale: 1.02,
+                            boxShadow: '0 8px 40px rgba(0,0,0,0.08)'
+                          }}
+                          whileTap={{ scale: 0.98 }}
                           sx={{
-                            height: 6,
-                            borderRadius: 5,
-                            bgcolor: `${card.color}15`,
-                            '& .MuiLinearProgress-bar': {
-                              bgcolor: card.color,
+                            p: 3,
+                            height: '100%',
+                            cursor: 'pointer',
+                            background: '#ffffff',
+                            border: '1px solid',
+                            borderColor: 'rgba(0, 0, 0, 0.08)',
+                            borderRadius: 4,
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              borderColor: '#10B981',
+                              bgcolor: 'rgba(16, 185, 129, 0.02)',
                             }
                           }}
-                        />
-                      </Card>
-                    </motion.div>
-                  </Grid>
-                ))}
-              </Grid>
-            </motion.div>
-          </Box>
-        </Container>
+                          onClick={() => navigate(card.path)}
+                        >
+                          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <IconButton
+                              sx={{
+                                bgcolor: 'rgba(16, 185, 129, 0.1)',
+                                color: '#10B981',
+                                '&:hover': { 
+                                  bgcolor: 'rgba(16, 185, 129, 0.2)',
+                                }
+                              }}
+                              size="large"
+                            >
+                              {card.icon}
+                            </IconButton>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                px: 1.5,
+                                py: 0.5,
+                                borderRadius: 5,
+                                bgcolor: card.stats.change.includes('+') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                color: card.stats.change.includes('+') ? '#059669' : '#DC2626',
+                              }}
+                            >
+                              {card.stats.change}
+                            </Typography>
+                          </Box>
+
+                          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                            {card.title}
+                          </Typography>
+                          
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {card.description}
+                          </Typography>
+
+                          <Typography variant="h5" sx={{ mb: 1, fontWeight: 'medium' }}>
+                            {card.stats.value}
+                          </Typography>
+
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={card.progress}
+                            sx={{
+                              height: 6,
+                              borderRadius: 5,
+                              bgcolor: 'rgba(16, 185, 129, 0.1)',
+                              '& .MuiLinearProgress-bar': {
+                                bgcolor: '#10B981',
+                              }
+                            }}
+                          />
+                        </Card>
+                      </motion.div>
+                    </Grid>
+                  ))}
+                </Grid>
+              </motion.div>
+            </Box>
+          </Container>
+        </Box>
       </Box>
-    </Box>
+    </BaseLayout>
   );
 };
 

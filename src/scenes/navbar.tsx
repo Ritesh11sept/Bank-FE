@@ -23,89 +23,77 @@ const Navbar = () => {
       position="fixed"
       sx={{
         bgcolor: 'background.paper',
-        backdropFilter: 'blur(20px)',
         borderBottom: '1px solid',
         borderColor: 'divider',
         boxShadow: 'none',
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: 'blur(20px)',
         zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar sx={{ justifyContent: "space-between" }}>
         <FlexBetween>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Box
-                component={motion.div}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                sx={{
-                  width: 35,
-                  height: 35,
-                  borderRadius: 2,
-                  background: `linear-gradient(135deg, ${palette.primary.main}, ${palette.secondary.main})`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography color="white" fontWeight="bold">F</Typography>
-              </Box>
-              <Typography
-                variant="h4"
-                fontSize={20}
-                sx={{
-                  background: `linear-gradient(135deg, ${palette.primary.main}, ${palette.secondary.main})`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontWeight: "bold"
-                }}
-              >
-                Finanseer
-              </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Box
+              component={motion.div}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              sx={{
+                width: 35,
+                height: 35,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #10B981, #059669)',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography color="white" fontWeight="bold">F</Typography>
             </Box>
-          </motion.div>
+            <Typography
+              variant="h4"
+              fontSize={20}
+              sx={{
+                background: 'linear-gradient(135deg, #10B981, #059669)',
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: "bold"
+              }}
+            >
+              Finanseer
+            </Typography>
+          </Box>
         </FlexBetween>
 
         <Box display="flex" gap={2} alignItems="center">
           {[SearchOutlinedIcon, NotificationsNoneIcon, EmailOutlinedIcon, SettingsOutlinedIcon].map((Icon, index) => (
-            <motion.div
+            <IconButton
               key={index}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              sx={{
+                color: 'text.primary',
+                '&:hover': {
+                  bgcolor: 'rgba(16, 185, 129, 0.1)',
+                }
+              }}
             >
-              <IconButton>
-                <Badge badgeContent={index === 1 ? 4 : index === 2 ? 2 : 0} color="error">
-                  <Icon />
-                </Badge>
-              </IconButton>
-            </motion.div>
+              <Badge badgeContent={index === 1 ? 4 : index === 2 ? 2 : 0} color="success">
+                <Icon />
+              </Badge>
+            </IconButton>
           ))}
 
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <IconButton onClick={handleProfileClick}>
-              <Avatar
-                src="/path-to-avatar.jpg"
-                sx={{
-                  width: 35,
-                  height: 35,
-                  border: '2px solid',
-                  borderColor: palette.primary.main
-                }}
-              />
-            </IconButton>
-          </motion.div>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem onClick={handleClose}>Profile</MenuItem>
-            <MenuItem onClick={handleClose}>Settings</MenuItem>
-            <MenuItem onClick={handleClose}>Logout</MenuItem>
-          </Menu>
+          <Avatar
+            sx={{
+              width: 35,
+              height: 35,
+              border: '2px solid',
+              borderColor: '#10B981',
+              cursor: 'pointer',
+              '&:hover': {
+                boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.2)',
+              }
+            }}
+          />
         </Box>
       </Toolbar>
     </AppBar>
