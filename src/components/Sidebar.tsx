@@ -12,6 +12,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import HomeIcon from '@mui/icons-material/Home';
 import InsightsIcon from '@mui/icons-material/Insights';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
@@ -22,15 +23,27 @@ const Sidebar = () => {
 
   const menuItems = [
     { text: 'Home', icon: <HomeIcon />, path: '/landing' },
+    { text: 'Markets', icon: <ShowChartIcon />, path: '/markets' },
     { text: 'Insights', icon: <InsightsIcon />, path: '/predictions' },
     { text: 'Treasures', icon: <DiamondIcon />, path: '/treasures' },
     { text: 'Savings', icon: <SavingsIcon />, path: '/savings' },
     { text: 'Dashboard', icon: < AnalyticsIcon />, path: '/dashboard' },
   ];
 
+  const handleLogout = () => {
+    // Add any logout logic here (e.g., clearing localStorage, cookies, etc.)
+    localStorage.clear();
+    // Redirect to home
+    navigate('/');
+  };
+
   const bottomMenuItems = [
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
     { text: 'Help', icon: <HelpOutlineIcon />, path: '/help' },
+    { 
+      text: 'Logout', 
+      icon: <LogoutIcon />, 
+      onClick: handleLogout 
+    },
   ];
 
   const DrawerContent = () => (
@@ -109,7 +122,11 @@ const Sidebar = () => {
             <ListItem
               button
               onClick={() => {
-                navigate(item.path);
+                if (item.onClick) {
+                  item.onClick();
+                } else {
+                  navigate(item.path);
+                }
                 setMobileOpen(false);
               }}
               sx={{

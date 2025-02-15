@@ -6,6 +6,8 @@ import PricingSection from './PricingSection';
 import StockNews from './StockNews';
 import Footer from './Footer';
 import AboutModal from './About';
+import LoginModal from './LoginModal';
+import RegisterModal from './RegisterModal';
 
 const NavButton = ({ children, variant = 'secondary', href, onClick }) => (
   <button
@@ -110,6 +112,8 @@ const HomePage = () => {
   const featuresRef = useRef(null);
   const pricingRef = useRef(null);
   const newsRef = useRef(null);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const features = [
     {
@@ -161,6 +165,12 @@ const HomePage = () => {
         break;
       case '/news':
         scrollToSection(pricingRef); // Changed from newsRef to pricingRef
+        break;
+      case '/signup':
+        setIsRegisterOpen(true);
+        break;
+      case '/landing':
+        setIsLoginOpen(true);
         break;
       default:
         navigate(path);
@@ -332,6 +342,16 @@ const HomePage = () => {
           </div>
         </div>
       </main>
+
+      <LoginModal 
+        open={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+      />
+      
+      <RegisterModal 
+        open={isRegisterOpen} 
+        onClose={() => setIsRegisterOpen(false)} 
+      />
 
       {/* Add Footer at the bottom */}
       <Footer />

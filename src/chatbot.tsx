@@ -12,13 +12,15 @@ declare global {
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-const systemContext = `You are a Door Step Banking Assistant. Key information:
+const systemContext = `You are Aleeza, a friendly and professional female Door Step Banking Assistant from India. Key information:
+- Always respond as a polite and helpful Indian female assistant
 - Website: Door Step Banking Services
 - Owner: Manas Lohe
 - Contact: 9420718136
 - Limit all responses to 50 words or less
 - Focus on banking services delivered to customer's doorstep
-- Be concise and professional`;
+- Use warm, empathetic, and professional tone
+- Address customers respectfully using Indian courtesies`;
 
 // Memoize the CustomMessage component
 const CustomMessage = memo(({ message, isUser }: { message: ChatMessage; isUser: boolean }) => (
@@ -49,6 +51,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,14 +88,57 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
     };
   }, []);
 
-  // Function to speak messages
+  // Update the speech synthesis setup useEffect
+  useEffect(() => {
+    const setupVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Try to find a good quality female voice (Samantha or similar)
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Samantha') || 
+        v.name.includes('Karen') ||
+        v.name.includes('Microsoft Jenny')
+      );
+      // Fallback to any female voice
+      const femaleVoice = voices.find(v => 
+        (v.name.includes('Female') || v.name.includes('female')) &&
+        (v.lang.includes('en-US') || v.lang.includes('en-GB'))
+      );
+      
+      setVoice(preferredVoice || femaleVoice || voices[0]);
+      console.log('Selected voice:', voice?.name);
+    };
+
+    if (window.speechSynthesis) {
+      if (window.speechSynthesis.getVoices().length > 0) {
+        setupVoice();
+      }
+      window.speechSynthesis.onvoiceschanged = setupVoice;
+    }
+
+    // Speak initial greeting
+    const initialMessage = messages[0].message;
+    setTimeout(() => speakMessage(initialMessage), 500);
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Update the speak message function
   const speakMessage = (text: string) => {
-    if (isTextToSpeech && text) {
+    if (isTextToSpeech && text && window.speechSynthesis) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      if (voice) {
+        utterance.voice = voice;
+      }
+      // Standard voice settings for clear professional speech
       utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1;
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -217,7 +263,8 @@ const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
       };
       
       setMessages([...chatMessages, newMessage]);
-      speakMessage(responseMessage);
+      // Add a small delay before speaking to ensure smooth transition
+      setTimeout(() => speakMessage(responseMessage), 100);
     } catch (error) {
       console.error("Error:", error);
       setMessages([...chatMessages, {
