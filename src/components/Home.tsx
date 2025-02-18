@@ -118,33 +118,33 @@ const HomePage = () => {
   const features = [
     {
       icon: Layers,
-      title: "Instant Account Setup",
-      description: "Open a zero-balance savings account instantly with Aadhaar and PAN"
-    },
-    {
-      icon: Clock,
-      title: "24x7 UPI Payments",
-      description: "Send money instantly via UPI to any bank account in India"
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile Banking",
-      description: "Manage your finances with our secure, feature-rich mobile app"
-    },
-    {
-      icon: IndianRupee,
-      title: "Smart Savings",
-      description: "Auto-save with RD, FD, and round-up features on transactions"
+      title: "PAN Integration",
+      description: "Connect all your bank accounts instantly with just your PAN details"
     },
     {
       icon: BarChart2,
-      title: "AI-Driven Insights",
-      description: "Get personalized spending insights and investment recommendations"
+      title: "Smart Analytics",
+      description: "Comprehensive analysis of your spending patterns and financial health"
+    },
+    {
+      icon: IndianRupee,
+      title: "Financial Goals",
+      description: "Create custom saving pots for your goals with automated tracking"
+    },
+    {
+      icon: Smartphone,
+      title: "Market Insights",
+      description: "Get personalized financial advice and stock market recommendations"
     },
     {
       icon: CreditCard,
-      title: "Digital Cards",
-      description: "Generate instant virtual cards for safe online transactions"
+      title: "Rewards System",
+      description: "Earn rewards for smart financial decisions and app usage"
+    },
+    {
+      icon: Clock,
+      title: "Real-time Monitoring",
+      description: "Track all your transactions and account balances in real-time"
     }
   ];
 
@@ -192,8 +192,8 @@ const HomePage = () => {
             <span className="text-white text-xl lg:text-2xl font-bold">₹</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-xl lg:text-2xl font-bold text-white">PayEase</span>
-            <span className="text-xs lg:text-sm text-emerald-400">Banking Simplified</span>
+            <span className="text-xl lg:text-2xl font-bold text-white">FinanceSeer</span>
+            <span className="text-xs lg:text-sm text-emerald-400">Smart Financial Insights</span>
           </div>
         </motion.div>
         
@@ -256,7 +256,7 @@ const HomePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Banking Made Simple<br />For Everyone
+                Your Financial Journey<br />Made Smarter
               </motion.h1>
               
               <motion.p 
@@ -265,8 +265,8 @@ const HomePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                Experience seamless banking with instant transfers, smart investments, and secure transactions. 
-                Your financial journey starts here.
+                Connect all your bank accounts with a single PAN, get intelligent insights,
+                and make informed financial decisions with FinanceSeer.
               </motion.p>
               
               <motion.div 

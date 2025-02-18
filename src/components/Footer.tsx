@@ -51,28 +51,24 @@ const CircleRow = () => (
   );
 const Footer = () => {
   const footerLinks = {
-    Home: [
-      { title: 'Product Features', href: '#' },
-      { title: 'Benefits', href: '#' },
-      { title: 'How To Use', href: '#' },
-      { title: 'Key Features', href: '#' },
-      { title: 'Pricing', href: '#' },
-      { title: 'Testimonials', href: '#' },
-      { title: "FAQ's", href: '#' },
+    Features: [
+      { title: 'PAN Integration', href: '#' },
+      { title: 'Analytics Dashboard', href: '#' },
+      { title: 'Saving Pots', href: '#' },
+      { title: 'Market Insights', href: '#' },
+      { title: 'Rewards Program', href: '#' },
     ],
-    App: [
-      { title: 'Mobile App', href: '#' },
-      { title: 'Desktop App', href: '#' },
-      { title: 'How To Use', href: '#' },
+    Resources: [
+      { title: 'Financial Tips', href: '#' },
+      { title: 'Market Updates', href: '#' },
+      { title: 'User Guides', href: '#' },
+      { title: 'FAQs', href: '#' },
     ],
-    'All Pages': [
-      { title: 'Home', href: '#' },
-      { title: 'App', href: '#' },
-      { title: 'Blogs', href: '#' },
-      { title: 'Blog Open', href: '#' },
+    Company: [
+      { title: 'About Us', href: '#' },
       { title: 'Contact', href: '#' },
       { title: 'Privacy Policy', href: '#' },
-      { title: '404', href: '#' },
+      { title: 'Terms of Service', href: '#' },
     ],
   };
 
@@ -83,10 +79,10 @@ const Footer = () => {
         <div className="md:col-span-3">
           <div className="flex items-center gap-2 mb-4">
             <div className="bg-emerald-600 w-8 h-8 rounded-lg"></div>
-            <span className="text-white text-xl font-bold">Euphoria</span>
+            <span className="text-white text-xl font-bold">FinanceSeer</span>
           </div>
           <p className="text-sm mb-4">
-            Empowering Your Projects, Enhancing Your Success, Every Step of the Way.
+            Empowering users with smart financial insights and intelligent money management solutions.
           </p>
           <div className="flex gap-4">
             {['facebook', 'linkedin', 'instagram', 'twitter'].map((social) => (
@@ -141,7 +137,7 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto px-6 pt-8 mt-8 border-t border-gray-800">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm">© 2024 Euphoria. All rights reserved.</p>
+          <p className="text-sm">© 2024 FinanceSeer. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#privacy" className="text-sm hover:text-white transition-colors">
               Privacy Policy

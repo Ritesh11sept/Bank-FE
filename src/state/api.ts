@@ -80,11 +80,11 @@ export const api = createApi({
       invalidatesTags: ["Pots"],
     }),
     
-    updatePotGoal: build.mutation<Pot, { id: string; goalAmount: number }>({
-      query: ({ id, goalAmount }) => ({
-        url: `pots/${id}/goal`,
+    updatePotGoal: build.mutation<any, { potId: string; data: { goalAmount: number } }>({
+      query: ({ potId, data }) => ({
+        url: `/pots/${potId}/goal`,
         method: "PUT",
-        body: { goalAmount },
+        body: data,
       }),
       invalidatesTags: ["Pots"],
     }),

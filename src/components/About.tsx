@@ -26,7 +26,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">About PayEase</h2>
+          <h2 className="text-2xl font-bold text-gray-900">About FinanceSeer</h2>
           <button 
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -34,23 +34,29 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        <div className="space-y-4 text-gray-600">
+        <div className="prose max-w-none text-gray-600">
           <p>
-            PayEase is a leading digital banking platform in India, revolutionizing the way people manage their finances. Established in 2024, we combine cutting-edge technology with user-friendly interfaces to provide seamless banking solutions.
+            FinanceSeer is a revolutionary financial management platform that simplifies how you track and manage your finances across multiple bank accounts. By simply connecting your PAN card, you get instant access to all your linked bank accounts in one place.
           </p>
+          
+          <h3>Our Mission</h3>
           <p>
-            Our mission is to make banking accessible, simple, and secure for everyone. With features like instant UPI payments, AI-driven insights, and comprehensive investment tools, we're building the future of banking.
+            To empower users with intelligent financial insights and tools that help them make better financial decisions and achieve their financial goals.
           </p>
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-emerald-50 p-4 rounded-xl">
-              <div className="text-2xl font-bold text-emerald-600">10L+</div>
-              <div className="text-sm text-emerald-700">Active Users</div>
-            </div>
-            <div className="bg-emerald-50 p-4 rounded-xl">
-              <div className="text-2xl font-bold text-emerald-600">₹100Cr+</div>
-              <div className="text-sm text-emerald-700">Daily Transactions</div>
-            </div>
-          </div>
+
+          <h3>Key Features</h3>
+          <ul>
+            <li>Single PAN card integration for multiple bank accounts</li>
+            <li>Advanced analytics and spending pattern analysis</li>
+            <li>Custom saving pots for goal-based savings</li>
+            <li>AI-powered financial advice and market insights</li>
+            <li>Rewards program for smart financial decisions</li>
+          </ul>
+
+          <h3>Security</h3>
+          <p>
+            FinanceSeer prioritizes your financial security with bank-grade encryption and secure authentication protocols. We never store sensitive banking credentials and comply with all relevant financial regulations.
+          </p>
         </div>
       </motion.div>
     </motion.div>

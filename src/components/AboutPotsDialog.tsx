@@ -24,77 +24,85 @@ interface AboutPotsDialogProps {
 
 const AboutPotsDialog: React.FC<AboutPotsDialogProps> = ({ open, onClose }) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ bgcolor: '#6366F1', color: 'white' }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        background: 'linear-gradient(to right, #10B981, #059669)',
+        color: 'white',
+        py: 3
+      }}>
         About Savings Pots
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ py: 2 }}>
+        <Box sx={{ py: 3 }}>
           <Typography variant="body1" paragraph>
             Savings Pots are smart and flexible ways to organize your savings for different goals.
             Think of them as digital piggy banks that help you save and track progress towards specific targets.
           </Typography>
 
-          <Typography variant="h6" sx={{ mt: 2, mb: 1, color: '#6366F1' }}>
+          <Typography variant="h6" sx={{ mt: 3, mb: 2, color: '#10B981', fontWeight: 600 }}>
             Key Features
           </Typography>
 
           <List>
-            <ListItem>
-              <ListItemIcon>
-                <SavingsIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Dedicated Savings"
-                secondary="Create separate pots for different goals like emergency funds, travel, or big purchases"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <AccountBalanceIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="2.5% Annual Interest"
-                secondary="Earn interest on your savings to help reach your goals faster"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <TrendingUpIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Goal Tracking"
-                secondary="Set targets and track your progress with visual progress bars"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon>
-                <SecurityIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Flexible Management"
-                secondary="Easily deposit, withdraw, or modify your savings goals anytime"
-              />
-            </ListItem>
+            {[
+              {
+                icon: <SavingsIcon sx={{ color: '#10B981' }} />,
+                primary: "Dedicated Savings",
+                secondary: "Create separate pots for different goals like emergency funds, travel, or big purchases"
+              },
+              {
+                icon: <AccountBalanceIcon sx={{ color: '#10B981' }} />,
+                primary: "2.5% Annual Interest",
+                secondary: "Earn interest on your savings to help reach your goals faster"
+              },
+              {
+                icon: <TrendingUpIcon sx={{ color: '#10B981' }} />,
+                primary: "Goal Tracking",
+                secondary: "Set targets and track your progress with visual progress bars"
+              },
+              {
+                icon: <SecurityIcon sx={{ color: '#10B981' }} />,
+                primary: "Flexible Management",
+                secondary: "Easily deposit, withdraw, or modify your savings goals anytime"
+              }
+            ].map((item, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText 
+                  primary={item.primary}
+                  secondary={item.secondary}
+                  primaryTypographyProps={{
+                    fontWeight: 500
+                  }}
+                />
+              </ListItem>
+            ))}
           </List>
-
-          <Typography variant="h6" sx={{ mt: 2, mb: 1, color: '#6366F1' }}>
-            How to Use
-          </Typography>
-
-          <Typography component="div">
-            <ol>
-              <li>Click "Create New Pot" to start a new savings goal</li>
-              <li>Choose a category and name for your pot</li>
-              <li>Set an optional target amount</li>
-              <li>Make regular deposits to grow your savings</li>
-              <li>Track your progress and adjust goals as needed</li>
-            </ol>
-          </Typography>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="contained" sx={{ bgcolor: '#6366F1' }}>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button 
+          onClick={onClose} 
+          variant="contained"
+          sx={{
+            background: 'linear-gradient(to right, #10B981, #059669)',
+            px: 4,
+            '&:hover': {
+              background: 'linear-gradient(to right, #059669, #047857)'
+            }
+          }}
+        >
           Got it!
         </Button>
       </DialogActions>

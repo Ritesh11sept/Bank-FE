@@ -31,42 +31,42 @@ const PricingSection = () => {
 
   const plans = {
     starter: {
-      title: "Starter Plan",
-      description: "Perfect for small businesses and startups",
+      title: "Basic Insights",
+      description: "Perfect for individual users starting their financial journey",
       monthlyPrice: "0",
       yearlyPrice: "0",
       features: [
-        "Bank Account Integration",
-        "GST Expense Tracking",
-        "Basic Analytics System",
-        "Budgeting Tools",
-        "Email Support"
+        "PAN-based Account Integration",
+        "Basic Spending Analytics",
+        "Transaction Monitoring",
+        "2 Saving Pots",
+        "Basic Market Updates"
       ]
     },
     growth: {
-      title: "Growth Plan",
-      description: "Ideal for growing SMEs and mid-sized companies",
-      monthlyPrice: "499",
-      yearlyPrice: "4999",
+      title: "Smart Saver",
+      description: "Ideal for users seeking advanced financial insights",
+      monthlyPrice: "299",
+      yearlyPrice: "2999",
       features: [
-        "Everything in Starter Plan",
-        "Advanced GST Tools",
-        "Custom Reports",
-        "UPI Transaction Insights",
-        "Priority Support"
+        "Everything in Basic Plan",
+        "Advanced Analytics Dashboard",
+        "Personalized Financial Advice",
+        "Unlimited Saving Pots",
+        "Premium Rewards Program"
       ]
     },
     business: {
-      title: "Business Plan",
-      description: "Perfect for larger organizations with advanced needs",
-      monthlyPrice: "999",
-      yearlyPrice: "9999",
+      title: "Wealth Manager",
+      description: "Complete financial management suite with premium features",
+      monthlyPrice: "699",
+      yearlyPrice: "6999",
       features: [
-        "Everything in Growth Plan",
-        "TDS Management",
-        "API Integration",
-        "24/7 VIP Support",
-        "Advanced Security"
+        "Everything in Smart Saver",
+        "AI-Powered Investment Tips",
+        "Priority Customer Support",
+        "Custom Financial Reports",
+        "Advanced Market Insights"
       ]
     }
   };

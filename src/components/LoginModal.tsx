@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
-import { Dialog, TextField, Button, Alert } from '@mui/material';
+import { Dialog, TextField, IconButton, InputAdornment, Alert } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
+  onRegister: () => void; // Add this new prop
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
+const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onRegister }) => {
   const [pan, setPan] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       const response = await fetch('http://localhost:9000/user/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pan, password }),
       });
 
@@ -38,41 +42,131 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
       }
     } catch (err) {
       setError('Failed to login. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <div className="p-8">
-        <h2 className="text-2xl font-bold mb-6">Login to Your Account</h2>
-        {error && <Alert severity="error" className="mb-4">{error}</Alert>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <TextField
-            fullWidth
-            label="PAN Number"
-            value={pan}
-            onChange={(e) => setPan(e.target.value.toUpperCase())}
-            required
-            inputProps={{ maxLength: 10 }}
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            type="password"
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            type="submit"
-            className="bg-emerald-500 hover:bg-emerald-600"
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        style: {
+          background: 'transparent',
+          boxShadow: 'none',
+        },
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-slate-800/40 backdrop-blur-xl p-8 rounded-3xl border border-white/10"
+      >
+        <div className="text-center mb-8">
+          <motion.div 
+            className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
           >
-            Login
-          </Button>
+            <span className="text-white text-2xl font-bold">₹</span>
+          </motion.div>
+          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+          <p className="text-gray-400">Login to access your account</p>
+        </div>
+
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6"
+            >
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <User className="h-5 w-5 text-emerald-400" />
+              </div>
+              <input
+                type="text"
+                value={pan}
+                onChange={(e) => setPan(e.target.value.toUpperCase())}
+                placeholder="Enter PAN Number"
+                className="w-full bg-white/5 border border-white/10 text-white px-12 py-4 rounded-xl focus:outline-none focus:border-emerald-400 transition-colors placeholder:text-gray-500"
+                maxLength={10}
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-emerald-400" />
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter Password"
+                className="w-full bg-white/5 border border-white/10 text-white px-12 py-4 rounded-xl focus:outline-none focus:border-emerald-400 transition-colors placeholder:text-gray-500"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-4 flex items-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400 hover:text-emerald-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400 hover:text-emerald-400" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-4 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-emerald-500/25 transition-shadow"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                Continue <ArrowRight className="w-5 h-5" />
+              </>
+            )}
+          </motion.button>
         </form>
-      </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-400">
+            Don't have an account?{' '}
+            <motion.button 
+              onClick={() => {
+                onClose();
+                onRegister();
+              }}
+              whileHover={{ scale: 1.05 }}
+              className="text-emerald-400 hover:text-emerald-300 font-medium"
+            >
+              Sign up
+            </motion.button>
+          </p>
+        </div>
+      </motion.div>
     </Dialog>
   );
 };
