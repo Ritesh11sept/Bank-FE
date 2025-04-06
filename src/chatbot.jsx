@@ -1,0 +1,383 @@
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { X, Volume2, VolumeX, Send, MessageSquare, Mic, MicOff, ChevronDown } from 'lucide-react';
+
+const API_KEY = import.meta.env.VITE_API_KEY;
+
+const systemContext = `You are Aleeza, a friendly and professional female Door Step Banking Assistant from India. Key information:
+- Always respond as a polite and helpful Indian female assistant
+- Website: Door Step Banking Services
+- Owner: Manas Lohe
+- Contact: 9420718136
+- Limit all responses to 50 words or less
+- Focus on banking services delivered to customer's doorstep
+- Use warm, empathetic, and professional tone
+- Address customers respectfully using Indian courtesies`;
+
+// Memoize the CustomMessage component
+const CustomMessage = memo(({ message, isUser }) => (
+  <div className={`flex justify-${isUser ? 'end' : 'start'} mb-3`}>
+    <div className="flex max-w-[80%]">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${isUser ? 'bg-blue-500 order-2 ml-2' : 'bg-green-500 order-1 mr-2'}`}>
+        {isUser ? 'U' : 'A'}
+      </div>
+      <div className={`rounded-lg px-4 py-2 ${isUser ? 'bg-blue-100 order-1' : 'bg-gray-100 order-2'}`}>
+        <p className="text-sm">{message.message}</p>
+        <span className="text-xs text-gray-500 mt-1 block">{message.sentTime || 'just now'}</span>
+      </div>
+    </div>
+  </div>
+));
+
+const Chatbot = ({ onClose }) => {
+  const [messages, setMessages] = useState([
+    {
+      message: "Hi, I'm Aleeza your Door Step Banking Assistant. How may I help you with banking services today?",
+      sentTime: "just now",
+      sender: "ChatGPT"
+    }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isTextToSpeech, setIsTextToSpeech] = useState(true);
+  const [inputValue, setInputValue] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [voice, setVoice] = useState(null);
+  const messageListRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(transcript);
+        handleSend(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognition);
+    }
+
+    // Cleanup speech synthesis on unmount
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Update the speech synthesis setup useEffect
+  useEffect(() => {
+    const setupVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Try to find a good quality female voice (Samantha or similar)
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Samantha') ||
+        v.name.includes('Karen') ||
+        v.name.includes('Microsoft Jenny')
+      );
+      // Fallback to any female voice
+      const femaleVoice = voices.find(v => 
+        (v.name.includes('Female') || v.name.includes('female')) &&
+        (v.lang.includes('en-US') || v.lang.includes('en-GB'))
+      );
+      
+      setVoice(preferredVoice || femaleVoice || voices[0]);
+      console.log('Selected voice:', voice?.name);
+    };
+
+    if (window.speechSynthesis) {
+      if (window.speechSynthesis.getVoices().length > 0) {
+        setupVoice();
+      }
+      window.speechSynthesis.onvoiceschanged = setupVoice;
+    }
+
+    // Speak initial greeting
+    const initialMessage = messages[0].message;
+    setTimeout(() => speakMessage(initialMessage), 500);
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Update the speak message function
+  const speakMessage = (text) => {
+    if (isTextToSpeech && text && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (voice) {
+        utterance.voice = voice;
+      }
+      // Standard voice settings for clear professional speech
+      utterance.lang = 'en-US';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Toggle speech recognition
+  const toggleListening = () => {
+    if (!recognition) return;
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
+  // Debounce scroll handler
+  const handleScroll = useCallback(() => {
+    if (!messageListRef.current) return;
+    
+    requestAnimationFrame(() => {
+      const { scrollTop, scrollHeight, clientHeight } = messageListRef.current;
+      const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 1;
+      setShowScrollButton(!isAtBottom);
+    });
+  }, []);
+
+  const scrollToBottom = () => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  };
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Handle sending messages
+  const handleSend = async (message) => {
+    if (!message.trim()) return;
+
+    const newMessage = {
+      message,
+      direction: 'outgoing',
+      sender: "user",
+      sentTime: new Date().toLocaleTimeString()
+    };
+
+    const newMessages = [...messages, newMessage];
+    setMessages(newMessages);
+    setInputValue('');
+    setIsTyping(true);
+    await processMessageToChatGPT(newMessages);
+  };
+
+  // Process message with ChatGPT
+  async function processMessageToChatGPT(chatMessages) {
+    const lastMessage = chatMessages[chatMessages.length - 1];
+    
+    try {
+      if (!API_KEY) {
+        throw new Error('API key not configured');
+      }
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `${systemContext}\n\nUser: ${lastMessage.message}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 100,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE"
+              }
+            ]
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API Error: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid response format');
+      }
+
+      const responseMessage = data.candidates[0].content.parts[0].text;
+      const newMessage = {
+        message: responseMessage,
+        sender: "ChatGPT",
+        direction: "incoming",
+        sentTime: new Date().toLocaleTimeString()
+      };
+      
+      setMessages([...chatMessages, newMessage]);
+      // Add a small delay before speaking to ensure smooth transition
+      setTimeout(() => speakMessage(responseMessage), 100);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages([...chatMessages, {
+        message: "I apologize, but I'm having trouble processing your request. Please try again.",
+        sender: "ChatGPT",
+        direction: "incoming",
+        sentTime: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
+  }
+
+  // Memoize handlers
+  const handleInputChange = useCallback((e) => {
+    setInputValue(e.target.value);
+  }, []);
+
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      handleSend(inputValue);
+    }
+  }, [inputValue]);
+
+  // Memoize send handler
+  const handleSendClick = useCallback(() => {
+    if (inputValue.trim()) {
+      handleSend(inputValue);
+    }
+  }, [inputValue]);
+
+  return (
+    <div className="flex flex-col bg-white rounded-lg shadow-lg w-full max-w-md h-[500px] border border-gray-200">
+      <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white rounded-t-lg">
+        <div className="flex items-center">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+            <MessageSquare className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-medium text-lg">Aleeza</h3>
+            <p className="text-sm text-gray-500">Banking Assistant</p>
+          </div>
+        </div>
+        <div className="flex items-center">
+          <button
+            onClick={() => setIsTextToSpeech(!isTextToSpeech)}
+            className="p-2 rounded-full hover:bg-gray-100 mr-1"
+            title={isTextToSpeech ? "Mute voice" : "Enable voice"}
+          >
+            {isTextToSpeech ? 
+             <Volume2 className="w-5 h-5 text-gray-600" /> : 
+             <VolumeX className="w-5 h-5 text-gray-600" />
+            }
+          </button>
+          {onClose && (
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div 
+        ref={messageListRef}
+        className="flex-1 p-4 overflow-y-auto"
+        onScroll={handleScroll}
+      >
+        {messages.map((message, i) => (
+          <CustomMessage 
+            key={`${message.sender}-${i}-${message.sentTime}`}
+            message={message} 
+            isUser={message.sender === "user"}
+          />
+        ))}
+        {isTyping && (
+          <div className="flex items-center text-sm text-gray-500 mt-2">
+            <div className="flex space-x-1 mr-2">
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+            </div>
+            Aleeza is typing...
+          </div>
+        )}
+      </div>
+
+      {showScrollButton && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-20 right-4 bg-gray-200 rounded-full p-2 shadow-md hover:bg-gray-300"
+        >
+          <ChevronDown className="w-5 h-5 text-gray-600" />
+        </button>
+      )}
+
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center bg-gray-100 rounded-full overflow-hidden pl-2 pr-1">
+          <button
+            onClick={toggleListening}
+            className={`p-2 rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'hover:bg-gray-200 text-gray-500'}`}
+          >
+            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </button>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message here..."
+            className="flex-1 py-2 px-3 bg-transparent outline-none text-sm"
+          />
+          <button
+            onClick={handleSendClick}
+            disabled={!inputValue.trim()}
+            className={`p-2 rounded-full ${inputValue.trim() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default memo(Chatbot);
