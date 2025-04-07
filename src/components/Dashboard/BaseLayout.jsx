@@ -6,7 +6,7 @@ const BaseLayout = ({ children }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen w-full overflow-hidden">
       {children}
 
       {/* Floating Chat Button */}
