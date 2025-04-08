@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiBell, FiMail, FiUser, FiLogOut, FiHelpCircle, FiMenu, FiCreditCard, FiFileText, FiShield } from "react-icons/fi";
 import Avatar from "react-avatar";
+import { useGetUserProfileQuery } from "../state/api";
 
 // Change props to destructure both toggleSidebar and setMobileOpen
 const Navbar = ({ toggleSidebar, setMobileOpen }) => {
@@ -10,6 +11,10 @@ const Navbar = ({ toggleSidebar, setMobileOpen }) => {
   const profileButtonRef = useRef(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
+  
+  // Fetch user profile data
+  const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
+  const userData = profileData?.user;
 
   // Close profile menu when clicking outside
   useEffect(() => {
@@ -55,27 +60,52 @@ const Navbar = ({ toggleSidebar, setMobileOpen }) => {
     { icon: <FiMail size={20} />, count: 2, label: "Messages" },
   ];
 
-  const accountInfo = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    accountNumber: "XXXX-XXXX-1234",
-    accountType: "Savings",
-    panNumber: "ABCDE1234F",
-    branch: "Main Branch - Mumbai",
-    ifsc: "BANK0001234",
+  // Default account info if user data is not loaded yet
+  const accountInfo = userData ? {
+    name: userData.name,
+    email: userData.email,
+    accountNumber: userData.linkedAccounts?.length > 0 ? 
+      userData.linkedAccounts[0].accountNumber : "Not Available",
+    accountType: userData.linkedAccounts?.length > 0 ? 
+      "Savings" : "Not Available",
+    panNumber: userData.pan,
+    branch: userData.linkedAccounts?.length > 0 ? 
+      "Main Branch - Mumbai" : "Not Available",
+    ifsc: userData.linkedAccounts?.length > 0 ? 
+      userData.linkedAccounts[0].ifscCode : "Not Available",
     lastLogin: "Today, 10:45 AM",
-    phone: "+91 98765 43210"
+    phone: userData.phone,
+    kycStatus: "Verified"
+  } : {
+    name: "Loading...",
+    email: "loading@example.com",
+    accountNumber: "XXXX-XXXX-0000",
+    accountType: "Loading...",
+    panNumber: "Loading...",
+    branch: "Loading...",
+    ifsc: "Loading...",
+    lastLogin: "Loading...",
+    phone: "Loading...",
+    kycStatus: "Unknown"
   };
   
-  const accountsList = [
-    { accountNumber: "XXXX-XXXX-1234", accountType: "Savings", isPrimary: true },
-    { accountNumber: "XXXX-XXXX-5678", accountType: "Current", isPrimary: false },
-    { accountNumber: "XXXX-XXXX-9012", accountType: "Fixed Deposit", isPrimary: false }
+  // Generate accounts list from user's linked accounts
+  const accountsList = userData?.linkedAccounts?.map((account, index) => ({
+    accountNumber: account.accountNumber,
+    accountType: "Savings",  // This could come from the API if available
+    isPrimary: index === 0,  // First account is primary
+    bankName: account.bankName,
+    balance: account.balance
+  })) || [
+    { accountNumber: "Loading...", accountType: "Loading...", isPrimary: true }
   ];
 
   const profileMenuItems = [
     { icon: <FiUser size={16} />, text: "Profile", action: openAccountModal },
-    { icon: <FiLogOut size={16} />, text: "Sign Out", action: () => console.log("Sign out clicked") },
+    { icon: <FiLogOut size={16} />, text: "Sign Out", action: () => {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }},
   ];
 
   return (
@@ -242,61 +272,70 @@ const Navbar = ({ toggleSidebar, setMobileOpen }) => {
               <div className="px-6 py-4">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="text-lg font-semibold text-gray-800">Account Information</h4>
-                  <div className="relative">
-                    <button 
-                      onClick={toggleAccountSwitcher}
-                      className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1"
-                    >
-                      Switch Account
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showAccountSwitcher ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    
-                    <AnimatePresence>
-                      {showAccountSwitcher && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          className="absolute right-0 mt-1 bg-white shadow-lg rounded-lg w-64 overflow-hidden z-10 border border-gray-200"
-                        >
-                          {accountsList.map((account, idx) => (
-                            <button 
-                              key={idx}
-                              className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center justify-between"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log(`Switching to account: ${account.accountNumber}`);
-                                setShowAccountSwitcher(false);
-                              }}
-                            >
-                              <div>
-                                <div className="text-sm font-medium">{account.accountNumber}</div>
-                                <div className="text-xs text-gray-500">{account.accountType}</div>
-                              </div>
-                              {account.isPrimary && (
-                                <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Primary</span>
-                              )}
-                            </button>
-                          ))}
-                          
-                          <div className="border-t border-gray-200 p-2">
-                            <button 
-                              className="w-full text-sm text-center py-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log("Manage accounts clicked");
-                                setShowAccountSwitcher(false);
-                              }}
-                            >
-                              Manage Accounts
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  {accountsList.length > 1 && (
+                    <div className="relative">
+                      <button 
+                        onClick={toggleAccountSwitcher}
+                        className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                      >
+                        Switch Account
+                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${showAccountSwitcher ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showAccountSwitcher && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            className="absolute right-0 mt-1 bg-white shadow-lg rounded-lg w-64 overflow-hidden z-10 border border-gray-200"
+                          >
+                            {accountsList.map((account, idx) => (
+                              <button 
+                                key={idx}
+                                className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center justify-between"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log(`Switching to account: ${account.accountNumber}`);
+                                  setShowAccountSwitcher(false);
+                                }}
+                              >
+                                <div>
+                                  <div className="text-sm font-medium">
+                                    {account.bankName || ""} {account.accountNumber}
+                                  </div>
+                                  <div className="text-xs text-gray-500">{account.accountType}</div>
+                                  {account.balance && (
+                                    <div className="text-xs text-emerald-600">
+                                      Balance: ₹{account.balance.toLocaleString()}
+                                    </div>
+                                  )}
+                                </div>
+                                {account.isPrimary && (
+                                  <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Primary</span>
+                                )}
+                              </button>
+                            ))}
+                            
+                            <div className="border-t border-gray-200 p-2">
+                              <button 
+                                className="w-full text-sm text-center py-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log("Manage accounts clicked");
+                                  setShowAccountSwitcher(false);
+                                }}
+                              >
+                                Manage Accounts
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
@@ -348,6 +387,15 @@ const Navbar = ({ toggleSidebar, setMobileOpen }) => {
                     View Activity
                   </button>
                 </div>
+                
+                {userData?.bankBalance && (
+                  <div className="mt-4 bg-green-50 rounded-xl p-3 border border-green-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-green-500 block">Bank Balance</span>
+                      <span className="text-sm font-medium">₹{userData.bankBalance.toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="mt-4 flex justify-center">
                   <button 

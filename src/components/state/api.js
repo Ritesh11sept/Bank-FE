@@ -3,16 +3,23 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ 
     baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
-    prepareHeaders: (headers) => {
+    prepareHeaders: (headers, { getState }) => {
       headers.set('Accept', 'application/json');
       headers.set('Content-Type', 'application/json');
-      console.log('Request URL:', import.meta.env.VITE_BASE_URL);
+      
+      // Add auth token if available in localStorage
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      
+      console.log('Using Base URL:', import.meta.env.VITE_BASE_URL || 'http://localhost:9000');
       console.log('Request Headers:', Object.fromEntries(headers));
       return headers;
     },
   }),
   reducerPath: "main",
-  tagTypes: ["Kpis", "Products", "Transactions", "Pots"],
+  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User"],
   endpoints: (build) => ({
     getKpis: build.query({
       query: () => {
@@ -90,6 +97,66 @@ export const api = createApi({
       }),
       invalidatesTags: ["Pots"],
     }),
+
+    // Authentication endpoints
+    registerUser: build.mutation({
+      query: (userData) => {
+        console.log('Register endpoint called with:', userData);
+        return {
+          url: 'user/register',
+          method: 'POST',
+          body: userData,
+        };
+      },
+      invalidatesTags: ["User"],
+    }),
+    
+    verifyOTP: build.mutation({
+      query: (otpData) => ({
+        url: 'user/verify-otp',
+        method: 'POST',
+        body: otpData,
+      }),
+    }),
+    
+    extractPANDetails: build.mutation({
+      query: (imageData) => ({
+        url: 'user/extract-pan-details',
+        method: 'POST',
+        body: imageData,
+      }),
+    }),
+    
+    loginUser: build.mutation({
+      query: (credentials) => ({
+        url: 'user/login',
+        method: 'POST',
+        body: credentials,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    
+    getLinkedAccounts: build.mutation({
+      query: (panData) => ({
+        url: 'user/getLinkedAccounts',
+        method: 'POST',
+        body: panData,
+      }),
+    }),
+
+    // User profile endpoint
+    getUserProfile: build.query({
+      query: () => "user/profile",
+      providesTags: ["User"],
+      transformResponse: (response) => {
+        console.log('User Profile Response:', response);
+        return response;
+      },
+      transformErrorResponse: (error) => {
+        console.error('User Profile Error:', error);
+        return error;
+      },
+    }),
   }),
 });
 
@@ -103,4 +170,10 @@ export const {
   useWithdrawFromPotMutation,
   useUpdatePotGoalMutation,
   useDeletePotMutation,
+  useRegisterUserMutation,
+  useVerifyOTPMutation,
+  useExtractPANDetailsMutation,
+  useLoginUserMutation,
+  useGetLinkedAccountsMutation,
+  useGetUserProfileQuery, // Export the new hook
 } = api;

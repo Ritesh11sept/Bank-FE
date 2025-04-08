@@ -164,7 +164,7 @@ const HomePage = () => {
         scrollToSection(pricingRef);
         break;
       case '/news':
-        scrollToSection(pricingRef); // Changed from newsRef to pricingRef
+        scrollToSection(newsRef);
         break;
       case '/signup':
         setIsRegisterOpen(true);
@@ -202,11 +202,11 @@ const HomePage = () => {
             <NavButton onClick={() => handleNavigation('/about')}>About</NavButton>
             <NavButton onClick={() => handleNavigation('/features')}>Features</NavButton>
             <NavButton onClick={() => handleNavigation('/pricing')}>Pricing</NavButton>
-            <NavButton onClick={() => handleNavigation('/resources')}>News</NavButton>
+            <NavButton onClick={() => handleNavigation('/news')}>News</NavButton> {/* Changed from '/resources' to '/news' */}
           </div>
           <div className="flex items-center gap-4 mt-4 lg:mt-0 lg:ml-4 lg:before:content-[''] lg:before:w-px lg:before:h-8 lg:before:bg-white/10">
-            <NavButton onClick={() => handleNavigation('/landing')}>Sign in</NavButton>
-            <NavButton variant="primary" onClick={() => handleNavigation('/signup')}>
+            <NavButton onClick={() => setIsLoginOpen(true)}>Sign in</NavButton>
+            <NavButton variant="primary" onClick={() => setIsRegisterOpen(true)}>
               Get Started
             </NavButton>
           </div>
@@ -276,13 +276,13 @@ const HomePage = () => {
                 transition={{ delay: 0.4 }}
               >
                 <button 
-                  onClick={() => handleNavigation('/signup')}
+                  onClick={() => setIsRegisterOpen(true)}
                   className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
                 >
                   Start Banking <ArrowRight className="w-5 h-5" />
                 </button>
                 <button 
-                  onClick={() => handleNavigation('/landing')}
+                  onClick={() => setIsLoginOpen(true)}
                   className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20"
                 >
                   Login to Account
@@ -349,7 +349,7 @@ const HomePage = () => {
       />
       
       <RegisterModal 
-        open={isRegisterOpen} 
+        isOpen={isRegisterOpen} 
         onClose={() => setIsRegisterOpen(false)} 
       />
 
