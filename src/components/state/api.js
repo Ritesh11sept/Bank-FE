@@ -19,7 +19,7 @@ export const api = createApi({
     },
   }),
   reducerPath: "main",
-  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User"],
+  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User", "Rewards"],
   endpoints: (build) => ({
     getKpis: build.query({
       query: () => {
@@ -157,6 +157,37 @@ export const api = createApi({
         return error;
       },
     }),
+
+    // Rewards endpoints
+    getUserRewards: build.query({
+      query: () => "rewards",
+      providesTags: ["Rewards"],
+    }),
+    
+    updateLoginStreak: build.mutation({
+      query: () => ({
+        url: "rewards/login-streak",
+        method: "POST",
+      }),
+      invalidatesTags: ["Rewards", "User"],
+    }),
+    
+    revealScratchCard: build.mutation({
+      query: (cardId) => ({
+        url: `rewards/scratch-card/${cardId}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Rewards", "User"],
+    }),
+    
+    submitGameScore: build.mutation({
+      query: (scoreData) => ({
+        url: "rewards/game-score",
+        method: "POST",
+        body: scoreData,
+      }),
+      invalidatesTags: ["Rewards", "User"],
+    }),
   }),
 });
 
@@ -176,4 +207,8 @@ export const {
   useLoginUserMutation,
   useGetLinkedAccountsMutation,
   useGetUserProfileQuery, // Export the new hook
+  useGetUserRewardsQuery,
+  useUpdateLoginStreakMutation,
+  useRevealScratchCardMutation,
+  useSubmitGameScoreMutation,
 } = api;
