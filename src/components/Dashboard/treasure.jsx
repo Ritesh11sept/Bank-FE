@@ -29,7 +29,7 @@ const Treasures = () => {
   const targetRef = useRef({ x: 0, y: 0 });
   
   // Fetch user rewards data
-  const { data: rewardsData, isLoading: isLoadingRewards } = useGetUserRewardsQuery();
+  const { data: rewardsData, isLoading: isLoadingRewards, refetch: refetchRewards } = useGetUserRewardsQuery();
   const [updateLoginStreak] = useUpdateLoginStreakMutation();
   const [revealScratchCard] = useRevealScratchCardMutation();
   const [submitGameScore] = useSubmitGameScoreMutation();
@@ -40,18 +40,29 @@ const Treasures = () => {
     scratchCards: []
   };
 
-  // Update login streak when component mounts
+  // Update login streak only once per day
   useEffect(() => {
     const updateStreak = async () => {
-      try {
-        await updateLoginStreak().unwrap();
-      } catch (error) {
-        console.error("Failed to update login streak", error);
+      // Check if we've already updated the streak today
+      const lastStreakUpdate = sessionStorage.getItem('lastLoginStreakUpdate');
+      const today = new Date().toDateString();
+      
+      // Only update if not already updated today in this session
+      if (lastStreakUpdate !== today) {
+        try {
+          await updateLoginStreak().unwrap();
+          // Mark that we've updated the streak for today
+          sessionStorage.setItem('lastLoginStreakUpdate', today);
+          // Refetch rewards to show the updated data
+          refetchRewards();
+        } catch (error) {
+          console.error("Failed to update login streak", error);
+        }
       }
     };
     
     updateStreak();
-  }, [updateLoginStreak]);
+  }, [updateLoginStreak, refetchRewards]);
   
   // Handle copying referral code
   const handleCopyReferral = () => {
@@ -73,6 +84,8 @@ const Treasures = () => {
           setTimeout(async () => {
             try {
               await revealScratchCard(id).unwrap();
+              // Refetch rewards to get the updated data
+              refetchRewards();
             } catch (error) {
               console.error("Failed to reveal scratch card", error);
             }

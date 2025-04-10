@@ -208,22 +208,6 @@ export const api = createApi({
       invalidatesTags: ["Notifications"],
     }),
     
-    useDeleteNotificationMutation: build.mutation({
-      query: (data) => ({
-        url: `/notifications/${data.id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Notifications'],
-    }),
-
-    useClearAllNotificationsMutation: build.mutation({
-      query: () => ({
-        url: '/notifications/clear-all',
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Notifications'],
-    }),
-
     // Pot reward connection
     getPotReward: build.mutation({
       query: (data) => ({
@@ -258,7 +242,5 @@ export const {
   useSubmitGameScoreMutation,
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
-  useDeleteNotificationMutation,
-  useClearAllNotificationsMutation,
   useGetPotRewardMutation,
 } = api;

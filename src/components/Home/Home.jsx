@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Smartphone, CreditCard, IndianRupee, BarChart2, Clock, Layers, ArrowRight, Check } from 'lucide-react';
+import { Smartphone, CreditCard, IndianRupee, BarChart2, Clock, Layers, ArrowRight, Check, MessageSquare } from 'lucide-react';
 import PricingSection from './PricingSection';
 import StockNews from './StockNews';
 import Footer from './Footer';
 import AboutModal from './About';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
+import Chatbot from '../../chatbot'; // Import the Chatbot component
 
 const NavButton = ({ children, variant = 'secondary', href, onClick }) => (
   <button
@@ -114,6 +115,7 @@ const HomePage = () => {
   const newsRef = useRef(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false); // Add chatbot state
 
   const features = [
     {
@@ -177,8 +179,12 @@ const HomePage = () => {
     }
   };
 
+  const toggleChatbot = () => {
+    setShowChatbot(!showChatbot);
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative"> {/* Add relative positioning to parent */}
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       
       {/* Enhanced Navigation */}
@@ -352,6 +358,29 @@ const HomePage = () => {
         isOpen={isRegisterOpen} 
         onClose={() => setIsRegisterOpen(false)} 
       />
+
+      {/* Updated Chatbot button with higher z-index and more distinct styling */}
+      {!showChatbot && (
+        <button 
+          onClick={toggleChatbot}
+          className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-700 hover:shadow-2xl transition-all flex items-center justify-center z-[9999]"
+          aria-label="Chat with Aleeza"
+          style={{ transform: 'translateZ(0)' }} // Force hardware acceleration
+        >
+          <MessageSquare className="w-7 h-7" />
+        </button>
+      )}
+      
+      {/* Updated Chatbot container with higher z-index */}
+      {showChatbot && (
+        <div className="fixed bottom-0 right-0 z-[9999] w-[400px] h-[70vh] m-6" 
+             style={{ transform: 'translateZ(0)' }}> {/* Force hardware acceleration */}
+          <Chatbot 
+            onClose={toggleChatbot} 
+            containerClass="w-full h-full shadow-2xl" 
+          />
+        </div>
+      )}
 
       {/* Add Footer at the bottom */}
       <Footer />
