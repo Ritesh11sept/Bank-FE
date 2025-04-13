@@ -9,6 +9,7 @@ import Treasures from "./components/Dashboard/treasure";
 import Savings from "./components/Dashboard/saving";
 import ReduxProvider from "./components/ReduxProvider";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AdminDashboard from './Admin/AdminDashboard';
 
 const AppContent = () => {
   return (
@@ -26,6 +27,7 @@ const AppContent = () => {
         <Route path="/insights" element={<Insights />} />
         <Route path="/treasures" element={<Treasures />} />
         <Route path="/savings" element={<Savings />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </main>
   );
