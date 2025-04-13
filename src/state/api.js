@@ -3,23 +3,29 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const api = createApi({
   baseQuery: fetchBaseQuery({ 
     baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers, { getState, endpoint }) => {
       headers.set('Accept', 'application/json');
       headers.set('Content-Type', 'application/json');
       
-      // Add auth token if available in localStorage
+      // Add auth token if available in localStorage - check for both user and admin tokens
       const token = localStorage.getItem('token');
-      if (token) {
+      const adminToken = localStorage.getItem('adminToken');
+      
+      // Use the endpoint name to determine which token to use instead of a custom header
+      if (adminToken && endpoint.startsWith('admin')) {
+        headers.set('Authorization', `Bearer ${adminToken}`);
+        console.log('Using admin token for admin endpoint:', endpoint);
+      } else if (token) {
         headers.set('Authorization', `Bearer ${token}`);
+        console.log('Using user token for endpoint:', endpoint);
       }
       
       console.log('Using Base URL:', import.meta.env.VITE_BASE_URL || 'http://localhost:9000');
-      console.log('Request Headers:', Object.fromEntries(headers));
       return headers;
     },
   }),
   reducerPath: "main",
-  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User", "Rewards", "Notifications"],
+  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User", "Rewards", "Notifications", "AdminData"],
   endpoints: (build) => ({
     getKpis: build.query({
       query: () => {
@@ -208,22 +214,6 @@ export const api = createApi({
       invalidatesTags: ["Notifications"],
     }),
     
-    useDeleteNotificationMutation: build.mutation({
-      query: (data) => ({
-        url: `/notifications/${data.id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Notifications'],
-    }),
-
-    useClearAllNotificationsMutation: build.mutation({
-      query: () => ({
-        url: '/notifications/clear-all',
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Notifications'],
-    }),
-
     // Pot reward connection
     getPotReward: build.mutation({
       query: (data) => ({
@@ -232,6 +222,80 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: ["Rewards", "User"],
+    }),
+
+    // New Admin endpoints
+    adminLogin: build.mutation({
+      query: (credentials) => {
+        console.log('Admin login attempt with:', credentials);
+        return {
+          url: 'admin/login',
+          method: 'POST',
+          body: credentials,
+        };
+      },
+      transformResponse: (response) => {
+        console.log('Admin Login Success Response:', response);
+        return response;
+      },
+      transformErrorResponse: (error) => {
+        console.error('Admin Login Error:', error);
+        return error;
+      },
+    }),
+    
+    getAllUsers: build.query({
+      query: () => "admin/users",
+      providesTags: ["AdminData"],
+    }),
+    
+    getUserDetails: build.query({
+      query: (userId) => `admin/users/${userId}`,
+      providesTags: (result, error, userId) => [{ type: "AdminData", id: userId }],
+    }),
+    
+    getSystemStats: build.query({
+      query: () => "admin/stats",
+      providesTags: ["AdminData"],
+    }),
+    
+    getTransactionsStats: build.query({
+      query: () => "admin/transactions-stats",
+      providesTags: ["AdminData"],
+    }),
+    
+    getActiveUsers: build.query({
+      query: () => "admin/active-users",
+      providesTags: ["AdminData"],
+    }),
+    
+    getFlaggedTransactions: build.query({
+      query: () => "admin/flagged-transactions",
+      providesTags: ["AdminData"],
+    }),
+    
+    getPotStatistics: build.query({
+      query: () => "admin/pot-statistics",
+      providesTags: ["AdminData"],
+    }),
+    
+    // Admin actions
+    toggleUserStatus: build.mutation({
+      query: ({ userId, status }) => ({
+        url: `admin/users/${userId}/status`,
+        method: "PUT",
+        body: { status },
+      }),
+      invalidatesTags: ["AdminData"],
+    }),
+    
+    addSystemAlert: build.mutation({
+      query: (alertData) => ({
+        url: "admin/alerts",
+        method: "POST",
+        body: alertData,
+      }),
+      invalidatesTags: ["AdminData"],
     }),
   }),
 });
@@ -258,7 +322,17 @@ export const {
   useSubmitGameScoreMutation,
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
-  useDeleteNotificationMutation,
-  useClearAllNotificationsMutation,
   useGetPotRewardMutation,
+  
+  // Export the admin hooks
+  useAdminLoginMutation,
+  useGetAllUsersQuery,
+  useGetUserDetailsQuery,
+  useGetSystemStatsQuery,
+  useGetTransactionsStatsQuery,
+  useGetActiveUsersQuery,
+  useGetFlaggedTransactionsQuery,
+  useGetPotStatisticsQuery,
+  useToggleUserStatusMutation,
+  useAddSystemAlertMutation,
 } = api;

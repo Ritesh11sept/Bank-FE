@@ -1,26 +1,34 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { X, Volume2, VolumeX, Send, MessageSquare, Mic, MicOff, ChevronDown } from 'lucide-react';
+import { X, Volume2, VolumeX, Send, MessageSquare, Mic, MicOff, ChevronDown, Minimize2, Maximize2 } from 'lucide-react';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-const systemContext = `You are Aleeza, a friendly and professional female Door Step Banking Assistant from India. Key information:
-- Always respond as a polite and helpful Indian female assistant
-- Website: Door Step Banking Services
-- Owner: Manas Lohe
-- Contact: 9420718136
-- Limit all responses to 50 words or less
-- Focus on banking services delivered to customer's doorstep
-- Use warm, empathetic, and professional tone
-- Address customers respectfully using Indian courtesies`;
+// Enhanced system prompt with more website details and services
+const systemContext = `You are Niyati, a friendly and insightful female financial assistant for a platform called Financeseer. Key info:
+
+- Platform: Financeseer
+- Purpose: Help users manage money, build savings, and earn rewards
+- Respond like a smart, supportive financial coach
+- Limit replies to 60 words max unless asked for details
+- Tone: Empathetic, witty, and concise
+
+You offer:
+- Expense tracking summaries
+- Monthly saving tips
+- Reward suggestions based on spending
+- Budgeting help for specific goals (travel, gadgets, etc.)
+- Insightful reminders like “You’re spending more on dining this week” or “You’ve hit 80% of your entertainment budget.”
+
+Encourage users to stay on track and offer small rewards or praise when goals are met.`;
 
 // Memoize the CustomMessage component
 const CustomMessage = memo(({ message, isUser }) => (
-  <div className={`flex justify-${isUser ? 'end' : 'start'} mb-3`}>
+  <div className={`flex justify-${isUser ? 'end' : 'start'} mb-4`}>
     <div className="flex max-w-[80%]">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${isUser ? 'bg-blue-500 order-2 ml-2' : 'bg-green-500 order-1 mr-2'}`}>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${isUser ? 'bg-blue-600 order-2 ml-2' : 'bg-emerald-600 order-1 mr-2'}`}>
         {isUser ? 'U' : 'A'}
       </div>
-      <div className={`rounded-lg px-4 py-2 ${isUser ? 'bg-blue-100 order-1' : 'bg-gray-100 order-2'}`}>
+      <div className={`rounded-2xl px-4 py-3 ${isUser ? 'bg-blue-50 border border-blue-100 order-1' : 'bg-gray-50 border border-gray-100 order-2'}`}>
         <p className="text-sm">{message.message}</p>
         <span className="text-xs text-gray-500 mt-1 block">{message.sentTime || 'just now'}</span>
       </div>
@@ -28,10 +36,10 @@ const CustomMessage = memo(({ message, isUser }) => (
   </div>
 ));
 
-const Chatbot = ({ onClose }) => {
+const Chatbot = ({ onClose, containerClass = "" }) => {
   const [messages, setMessages] = useState([
     {
-      message: "Hi, I'm Aleeza your Door Step Banking Assistant. How may I help you with banking services today?",
+      message: "Hey, I'm Niyati, your smart Financeseer. Ready to sort your money and get you some sweet rewards. What do you want help with today?",
       sentTime: "just now",
       sender: "ChatGPT"
     }
@@ -43,6 +51,7 @@ const Chatbot = ({ onClose }) => {
   const [recognition, setRecognition] = useState(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [voice, setVoice] = useState(null);
+  const [isMinimized, setIsMinimized] = useState(false);
   const messageListRef = useRef(null);
 
   useEffect(() => {
@@ -186,7 +195,7 @@ const Chatbot = ({ onClose }) => {
     await processMessageToChatGPT(newMessages);
   };
 
-  // Process message with ChatGPT
+  // Process message with Gemini 2.0-flash
   async function processMessageToChatGPT(chatMessages) {
     const lastMessage = chatMessages[chatMessages.length - 1];
     
@@ -196,7 +205,7 @@ const Chatbot = ({ onClose }) => {
       }
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -280,39 +289,86 @@ const Chatbot = ({ onClose }) => {
     }
   }, [inputValue]);
 
-  // Memoize send handler
   const handleSendClick = useCallback(() => {
     if (inputValue.trim()) {
       handleSend(inputValue);
     }
   }, [inputValue]);
 
+  const toggleMinimize = useCallback(() => {
+    setIsMinimized(!isMinimized);
+  }, [isMinimized]);
+
+  // If minimized, only show the header
+  if (isMinimized) {
+    return (
+      <div className={`${containerClass} flex flex-col bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden`}>
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl cursor-pointer"
+          onClick={toggleMinimize}>
+          <div className="flex items-center">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 mr-3">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Aleeza</h3>
+              <p className="text-sm text-blue-100">Banking Assistant</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleMinimize(); }}
+              className="p-2 rounded-full hover:bg-blue-500 transition-all"
+              title="Maximize"
+            >
+              <Maximize2 className="w-5 h-5 text-white" />
+            </button>
+            {onClose && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                className="p-2 rounded-full hover:bg-blue-500 transition-all"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col bg-white rounded-lg shadow-lg w-full max-w-md h-[500px] border border-gray-200">
-      <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white rounded-t-lg">
+    <div className={`${containerClass} flex flex-col bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden`}>
+      <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-xl">
         <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-3">
+          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 mr-3">
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-medium text-lg">Aleeza</h3>
-            <p className="text-sm text-gray-500">Banking Assistant</p>
+            <h3 className="font-semibold text-lg">Aleeza</h3>
+            <p className="text-sm text-blue-100">Banking Assistant</p>
           </div>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsTextToSpeech(!isTextToSpeech)}
-            className="p-2 rounded-full hover:bg-gray-100 mr-1"
+            className="p-2 rounded-full hover:bg-blue-500 transition-all"
             title={isTextToSpeech ? "Mute voice" : "Enable voice"}
           >
             {isTextToSpeech ? 
-             <Volume2 className="w-5 h-5 text-gray-600" /> : 
-             <VolumeX className="w-5 h-5 text-gray-600" />
+             <Volume2 className="w-5 h-5 text-white" /> : 
+             <VolumeX className="w-5 h-5 text-white" />
             }
           </button>
+          <button
+            onClick={toggleMinimize}
+            className="p-2 rounded-full hover:bg-blue-500 transition-all"
+            title="Minimize"
+          >
+            <Minimize2 className="w-5 h-5 text-white" />
+          </button>
           {onClose && (
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
-              <X className="w-5 h-5 text-gray-600" />
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-blue-500 transition-all">
+              <X className="w-5 h-5 text-white" />
             </button>
           )}
         </div>
@@ -320,7 +376,8 @@ const Chatbot = ({ onClose }) => {
 
       <div 
         ref={messageListRef}
-        className="flex-1 p-4 overflow-y-auto"
+        className="flex-1 p-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-white"
+        style={{ height: "calc(100% - 68px - 80px)" }} // Adjusted heights
         onScroll={handleScroll}
       >
         {messages.map((message, i) => (
@@ -331,11 +388,11 @@ const Chatbot = ({ onClose }) => {
           />
         ))}
         {isTyping && (
-          <div className="flex items-center text-sm text-gray-500 mt-2">
+          <div className="flex items-center text-sm text-gray-600 mt-2 ml-12">
             <div className="flex space-x-1 mr-2">
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }} />
             </div>
             Aleeza is typing...
           </div>
@@ -345,17 +402,17 @@ const Chatbot = ({ onClose }) => {
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-20 right-4 bg-gray-200 rounded-full p-2 shadow-md hover:bg-gray-300"
+          className="absolute bottom-20 right-4 bg-blue-600 text-white rounded-full p-2 shadow-md hover:bg-blue-700 transition-all"
         >
-          <ChevronDown className="w-5 h-5 text-gray-600" />
+          <ChevronDown className="w-5 h-5" />
         </button>
       )}
 
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center bg-gray-100 rounded-full overflow-hidden pl-2 pr-1">
+      <div className="p-3 bg-white border-t border-gray-100 shadow-inner">
+        <div className="flex items-center bg-gray-100 rounded-full overflow-hidden pl-3 pr-1 border border-gray-200 focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100 transition-all">
           <button
             onClick={toggleListening}
-            className={`p-2 rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'hover:bg-gray-200 text-gray-500'}`}
+            className={`p-2 rounded-full ${isListening ? 'bg-red-100 text-red-500' : 'hover:bg-gray-200 text-gray-500'} transition-all`}
           >
             {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
@@ -370,10 +427,13 @@ const Chatbot = ({ onClose }) => {
           <button
             onClick={handleSendClick}
             disabled={!inputValue.trim()}
-            className={`p-2 rounded-full ${inputValue.trim() ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+            className={`p-2 rounded-full ${inputValue.trim() ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400'} transition-all ml-1`}
           >
             <Send className="w-5 h-5" />
           </button>
+        </div>
+        <div className="text-xs text-center mt-1 text-gray-400">
+          <span>Door Step Banking • 8 AM to 8 PM</span>
         </div>
       </div>
     </div>

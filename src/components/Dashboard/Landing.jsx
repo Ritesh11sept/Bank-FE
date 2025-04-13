@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./navbar";
-import BaseLayout from "./BaseLayout";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -107,72 +106,70 @@ const Landing = () => {
   ];
 
   return (
-    <BaseLayout>
-      <div className="flex min-h-screen bg-white">
-        <Navbar />
-        <Sidebar />
-        <main className="flex-grow p-3 sm:ml-60 mt-16 bg-white">
-          <div className="container mx-auto max-w-[1400px]">
-            <div className="py-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h1 className="mb-8 text-4xl font-bold bg-gradient-to-r from-[#10B981] to-[#059669] bg-clip-text text-transparent">
-                  Welcome Back, User!
-                </h1>
+    <div className="flex min-h-screen bg-white">
+      <Navbar />
+      <Sidebar />
+      <main className="flex-grow p-3 sm:ml-60 mt-16 bg-white">
+        <div className="container mx-auto max-w-[1400px]">
+          <div className="py-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="mb-8 text-4xl font-bold bg-gradient-to-r from-[#10B981] to-[#059669] bg-clip-text text-transparent">
+                Welcome Back, User!
+              </h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {cards.map((card, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {cards.map((card, index) => (
+                  <motion.div
+                    key={card.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
                     <motion.div
-                      key={card.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ 
+                        scale: 1.02,
+                        boxShadow: '0 8px 40px rgba(0,0,0,0.08)'
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate(card.path)}
+                      className="p-6 h-full cursor-pointer bg-white border border-gray-100 rounded-lg transition-all duration-300 hover:border-[#10B981] hover:bg-[rgba(16,185,129,0.02)]"
                     >
-                      <motion.div
-                        whileHover={{ 
-                          scale: 1.02,
-                          boxShadow: '0 8px 40px rgba(0,0,0,0.08)'
-                        }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(card.path)}
-                        className="p-6 h-full cursor-pointer bg-white border border-gray-100 rounded-lg transition-all duration-300 hover:border-[#10B981] hover:bg-[rgba(16,185,129,0.02)]"
-                      >
-                        <div className="mb-4 flex justify-between items-start">
-                          <button className="p-3 rounded-full bg-[rgba(16,185,129,0.1)] text-[#10B981] hover:bg-[rgba(16,185,129,0.2)]">
-                            {card.icon}
-                          </button>
-                          <span className={`px-3 py-1 rounded-full text-xs ${
-                            card.stats.change.includes('+') 
-                              ? 'bg-[rgba(16,185,129,0.1)] text-[#059669]' 
-                              : 'bg-[rgba(239,68,68,0.1)] text-[#DC2626]'
-                          }`}>
-                            {card.stats.change}
-                          </span>
-                        </div>
+                      <div className="mb-4 flex justify-between items-start">
+                        <button className="p-3 rounded-full bg-[rgba(16,185,129,0.1)] text-[#10B981] hover:bg-[rgba(16,185,129,0.2)]">
+                          {card.icon}
+                        </button>
+                        <span className={`px-3 py-1 rounded-full text-xs ${
+                          card.stats.change.includes('+') 
+                            ? 'bg-[rgba(16,185,129,0.1)] text-[#059669]' 
+                            : 'bg-[rgba(239,68,68,0.1)] text-[#DC2626]'
+                        }`}>
+                          {card.stats.change}
+                        </span>
+                      </div>
 
-                        <h2 className="text-xl font-bold mb-2">{card.title}</h2>
-                        <p className="text-gray-600 mb-4 text-sm">{card.description}</p>
-                        <p className="text-xl font-medium mb-3">{card.stats.value}</p>
+                      <h2 className="text-xl font-bold mb-2">{card.title}</h2>
+                      <p className="text-gray-600 mb-4 text-sm">{card.description}</p>
+                      <p className="text-xl font-medium mb-3">{card.stats.value}</p>
 
-                        <div className="h-1.5 bg-[rgba(16,185,129,0.1)] rounded-full">
-                          <div 
-                            className="h-full bg-[#10B981] rounded-full transition-all duration-300"
-                            style={{ width: `${card.progress}%` }}
-                          />
-                        </div>
-                      </motion.div>
+                      <div className="h-1.5 bg-[rgba(16,185,129,0.1)] rounded-full">
+                        <div 
+                          className="h-full bg-[#10B981] rounded-full transition-all duration-300"
+                          style={{ width: `${card.progress}%` }}
+                        />
+                      </div>
                     </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
-        </main>
-      </div>
-    </BaseLayout>
+        </div>
+      </main>
+    </div>
   );
 };
 

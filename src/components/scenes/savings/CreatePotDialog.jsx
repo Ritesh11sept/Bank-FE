@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft } from 'lucide-react';
-import { useCreatePotMutation } from "../../state/api";
+import { 
+  useCreatePotMutation,
+  useGetPotRewardMutation
+} from "../../state/api";
 import { POT_CATEGORIES } from './constants/potCategories';
 import SuccessAnimation from './SuccessAnimation';
 
@@ -38,6 +41,7 @@ const CreatePotDialog = ({
   potCategories 
 }) => {
   const [createPot] = useCreatePotMutation();
+  const [getPotReward] = useGetPotRewardMutation();
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [potName, setPotName] = useState('');
@@ -54,10 +58,22 @@ const CreatePotDialog = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createPot({
+      const result = await createPot({
         name: potName,
         category: selectedCategory
       }).unwrap();
+      
+      // Get rewards for creating a pot
+      try {
+        await getPotReward({
+          action: 'create',
+          potName: potName
+        }).unwrap();
+      } catch (rewardError) {
+        console.error('Failed to get pot creation reward:', rewardError);
+        // Non-critical, continue
+      }
+      
       setShowSuccess(true);
       // Success message will be shown via animation
       setTimeout(() => {

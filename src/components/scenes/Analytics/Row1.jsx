@@ -79,7 +79,7 @@ const Row1 = () => {
   // If the component isn't wrapped in a Redux Provider
   if (error?.message?.includes("react-redux context value")) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-center h-full">
         <p className="text-red-500">Redux Provider not found. Please ensure the app is wrapped in a Redux Provider.</p>
       </div>
     );
@@ -88,18 +88,18 @@ const Row1 = () => {
   return (
     <>
       {isLoading ? (
-        <div className="flex items-center justify-center p-4">Loading...</div>
+        <div className="flex items-center justify-center p-4 h-full">Loading...</div>
       ) : error ? (
-        <div className="flex items-center justify-center p-4 text-red-500">Error loading data</div>
+        <div className="flex items-center justify-center p-4 text-red-500 h-full">Error loading data</div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow-lg p-4" style={{ gridArea: "a" }}>
+          <div className="bg-white rounded-lg shadow-lg p-4 flex flex-col h-full" style={{ gridArea: "a" }}>
             <BoxHeader
               title="Revenue and Expenses"
               subtitle="top line represents revenue, bottom line represents expenses"
               sideText="+4%"
             />
-            <div className="w-full h-full">
+            <div className="flex-1 w-full min-h-0">
               {revenueExpenses ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
@@ -159,13 +159,13 @@ const Row1 = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4" style={{ gridArea: "b" }}>
+          <div className="bg-white rounded-lg shadow-lg p-4 flex flex-col h-full" style={{ gridArea: "b" }}>
             <BoxHeader
               title="Profit and Revenue"
               subtitle="top line represents revenue, bottom line represents expenses"
               sideText="+4%"
             />
-            <div className="w-full h-full">
+            <div className="flex-1 w-full min-h-0">
               {revenueProfit ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -225,13 +225,13 @@ const Row1 = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4" style={{ gridArea: "c" }}>
+          <div className="bg-white rounded-lg shadow-lg p-4 flex flex-col h-full" style={{ gridArea: "c" }}>
             <BoxHeader
               title="Revenue Month by Month"
               subtitle="graph representing the revenue month by month"
               sideText="+4%"
             />
-            <div className="w-full h-full">
+            <div className="flex-1 w-full min-h-0">
               {revenue ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart

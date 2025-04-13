@@ -9,7 +9,11 @@ import Treasures from "./components/Dashboard/treasure";
 import Savings from "./components/Dashboard/saving";
 import ReduxProvider from "./components/ReduxProvider";
 import ErrorBoundary from "./components/ErrorBoundary";
+<<<<<<< HEAD
 import Market from "./components/Markets/Market";
+=======
+import AdminDashboard from './Admin/AdminDashboard';
+>>>>>>> a69722703907a5e69dd808e1e10f4dba8d10b36d
 
 const AppContent = () => {
   return (
@@ -28,6 +32,7 @@ const AppContent = () => {
         <Route path="/insights" element={<Insights />} />
         <Route path="/treasures" element={<Treasures />} />
         <Route path="/savings" element={<Savings />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
     </main>
   );

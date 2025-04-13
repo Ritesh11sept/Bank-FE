@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { X, Target, Plus, Minus } from 'lucide-react';
-import { useDepositToPotMutation, useWithdrawFromPotMutation } from "../../state/api";
+import { 
+  useDepositToPotMutation, 
+  useWithdrawFromPotMutation,
+  useGetPotRewardMutation
+} from "../../state/api";
 import { POT_CATEGORIES } from './constants/potCategories';
 import GoalCompletionCelebration from './GoalCompletionCelebration';
 
@@ -15,6 +19,7 @@ const TransactionDialog = ({
 }) => {
   const [depositToPot] = useDepositToPotMutation();
   const [withdrawFromPot] = useWithdrawFromPotMutation();
+  const [getPotReward] = useGetPotRewardMutation();
   const [showCelebration, setShowCelebration] = useState(false);
   
   const category = POT_CATEGORIES.find(c => c.id === selectedPot?.category);
@@ -30,9 +35,22 @@ const TransactionDialog = ({
       label: 'Amount to Add (₹)',
       buttonText: 'Add Money',
       action: async () => {
-        await depositToPot({ id: selectedPot?._id, amount }).unwrap();
-        if (selectedPot?.goalAmount && 
-            (selectedPot.balance + Number(amount)) >= selectedPot.goalAmount) {
+        const result = await depositToPot({ id: selectedPot?._id, amount }).unwrap();
+        
+        // Get rewards for depositing
+        try {
+          const rewardAction = result.goalReached ? 'goal-reached' : 'deposit';
+          await getPotReward({
+            action: rewardAction,
+            amount: Number(amount),
+            potName: selectedPot?.name
+          }).unwrap();
+        } catch (rewardError) {
+          console.error('Failed to get deposit reward:', rewardError);
+          // Non-critical, continue
+        }
+        
+        if (result.goalReached) {
           setShowCelebration(true);
         } else {
           onSuccess(`Successfully added ₹${amount} to ${selectedPot?.name}`);
@@ -51,6 +69,19 @@ const TransactionDialog = ({
       buttonText: 'Withdraw Money',
       action: async () => {
         await withdrawFromPot({ id: selectedPot?._id, amount }).unwrap();
+        
+        // Get rewards for withdrawing
+        try {
+          await getPotReward({
+            action: 'withdraw',
+            amount: Number(amount),
+            potName: selectedPot?.name
+          }).unwrap();
+        } catch (rewardError) {
+          console.error('Failed to get withdrawal reward:', rewardError);
+          // Non-critical, continue
+        }
+        
         onSuccess(`Successfully withdrawn ₹${amount} from ${selectedPot?.name}`);
         onClose();
       }

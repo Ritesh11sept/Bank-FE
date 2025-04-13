@@ -45,12 +45,14 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="w-full h-full p-6 md:p-8 bg-white/90 backdrop-blur-lg min-h-[calc(100vh-64px)]">
+      <div className="w-full p-6 md:p-8 bg-white/90 backdrop-blur-lg overflow-auto" style={{ height: 'calc(100vh - 64px)' }}>
         <div 
-          className="w-full h-full grid gap-6"
+          className="w-full grid gap-6 h-auto"
           style={{
-            gridTemplateColumns: isAboveMediumScreens ? 'repeat(3, minmax(370px, 1fr))' : '1fr',
+            gridTemplateColumns: isAboveMediumScreens ? 'repeat(3, minmax(300px, 1fr))' : '1fr',
             gridTemplateAreas: isAboveMediumScreens ? gridTemplateLargeScreens : gridTemplateSmallScreens,
+            gridAutoRows: 'minmax(80px, auto)',
+            maxHeight: isAboveMediumScreens ? 'none' : 'auto',
           }}
         >
           <ErrorBoundary>
