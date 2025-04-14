@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaHome, FaChartLine, FaLightbulb, FaGem, FaPiggyBank, FaChartBar, FaQuestionCircle, FaSignOutAlt, FaBars, FaTimes, FaCog } from 'react-icons/fa';
 import Settings from './Settings';
+import Help from '../Help/Help';
 
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Prevent scrolling when mobile sidebar is open
   useEffect(() => {
@@ -43,7 +45,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const bottomMenuItems = [
     { text: 'Settings', icon: <FaCog className="w-5 h-5" />, onClick: () => setShowSettings(true) },
-    { text: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, path: '/help' },
+    { text: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, onClick: () => setShowHelp(true) },
     { text: 'Logout', icon: <FaSignOutAlt className="w-5 h-5" />, onClick: handleLogout },
   ];
 
@@ -126,8 +128,6 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
   return (
     <>
-      {/* Mobile Hamburger Button - Remove this as it's now in Navbar */}
-      
       {/* Mobile Sidebar with Backdrop */}
       <AnimatePresence>
         {mobileOpen && (
@@ -160,6 +160,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
       {/* Settings Modal */}
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      
+      {/* Help Modal */}
+      {showHelp && <Help onClose={() => setShowHelp(false)} />}
     </>
   );
 };
