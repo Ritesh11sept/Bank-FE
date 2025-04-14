@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { useMemo } from "react";
 import Dashboard from "./components/scenes/Analytics/dashboard";
 import Predictions from "./components/Dashboard/prediction";
 import Home from "./components/Home/Home";
@@ -9,7 +8,11 @@ import Treasures from "./components/Dashboard/treasure";
 import Savings from "./components/Dashboard/saving";
 import ReduxProvider from "./components/ReduxProvider";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+import Market from "./components/Markets/Market";
+
 import AdminDashboard from './Admin/AdminDashboard';
+ 
 
 const AppContent = () => {
   return (
@@ -18,6 +21,7 @@ const AppContent = () => {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Home />} />
         <Route path="/landing" element={<Landing />} />
+        <Route path="/markets" element={<Market />} />
         <Route path="/dashboard" element={
           <ErrorBoundary>
             <Dashboard />

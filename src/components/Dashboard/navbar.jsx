@@ -274,7 +274,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
       text: "Sign Out",
       action: () => {
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        window.location.href = "/home";
       },
     },
   ];
