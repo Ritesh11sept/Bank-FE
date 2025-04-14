@@ -120,7 +120,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
         setLoginSuccess(true);
         setTimeout(() => {
           onClose();
-          navigate('/dashboard');
+          navigate('/landing');
         }, 1500);
       }
     } catch (err) {

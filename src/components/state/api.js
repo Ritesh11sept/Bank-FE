@@ -233,6 +233,28 @@ export const api = createApi({
       }),
       invalidatesTags: ["Rewards", "User"],
     }),
+
+    // User-to-user money transfer
+    transferMoney: build.mutation({
+      query: (transferData) => ({
+        url: "user/transfer",
+        method: "POST",
+        body: transferData,
+      }),
+      invalidatesTags: ["User", "Transactions"],
+    }),
+    
+    // Get user transactions
+    getUserTransactions: build.query({
+      query: () => "user/transactions",
+      providesTags: ["Transactions"],
+    }),
+    
+    // Get all users (for transfer functionality)
+    getAllBankUsers: build.query({
+      query: () => "user/all-users",
+      providesTags: ["User"],
+    }),
   }),
 });
 
@@ -251,7 +273,7 @@ export const {
   useExtractPANDetailsMutation,
   useLoginUserMutation,
   useGetLinkedAccountsMutation,
-  useGetUserProfileQuery, // Export the new hook
+  useGetUserProfileQuery,
   useGetUserRewardsQuery,
   useUpdateLoginStreakMutation,
   useRevealScratchCardMutation,
@@ -261,4 +283,7 @@ export const {
   useDeleteNotificationMutation,
   useClearAllNotificationsMutation,
   useGetPotRewardMutation,
+  useTransferMoneyMutation,
+  useGetUserTransactionsQuery,
+  useGetAllBankUsersQuery,
 } = api;

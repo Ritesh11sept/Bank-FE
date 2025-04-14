@@ -224,6 +224,28 @@ export const api = createApi({
       invalidatesTags: ["Rewards", "User"],
     }),
 
+    // User-to-user money transfer
+    transferMoney: build.mutation({
+      query: (transferData) => ({
+        url: "user/transfer",
+        method: "POST",
+        body: transferData,
+      }),
+      invalidatesTags: ["User", "Transactions"],
+    }),
+    
+    // Get user transactions
+    getUserTransactions: build.query({
+      query: () => "user/transactions",
+      providesTags: ["Transactions"],
+    }),
+    
+    // Get all users (for transfer functionality) - rename this to avoid conflict
+    getAllBankUsers: build.query({
+      query: () => "user/all-users",
+      providesTags: ["User"],
+    }),
+
     // New Admin endpoints
     adminLogin: build.mutation({
       query: (credentials) => {
@@ -323,6 +345,11 @@ export const {
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
   useGetPotRewardMutation,
+  
+  // Export the transfer hooks
+  useTransferMoneyMutation,
+  useGetUserTransactionsQuery,
+  useGetAllBankUsersQuery,
   
   // Export the admin hooks
   useAdminLoginMutation,

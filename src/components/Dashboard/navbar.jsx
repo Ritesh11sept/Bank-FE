@@ -25,7 +25,7 @@ import {
   useGetUserProfileQuery,
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
-} from "../state/api";
+} from "../../state/api";
 import NotificationPanel from "./NotificationPanel";
 
 const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
