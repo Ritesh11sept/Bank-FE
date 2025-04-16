@@ -2,14 +2,17 @@ import { motion } from "framer-motion";
 import { FiDollarSign, FiArrowUpRight, FiArrowDownRight, FiCreditCard } from "react-icons/fi";
 import { useGetUserProfileQuery, useGetUserTransactionsQuery } from "../../state/api";
 
-const AccountOverview = ({ balance }) => {
+const AccountOverview = ({ balance: propBalance }) => {
   const { data: profileData } = useGetUserProfileQuery();
   const { data: transactionsData } = useGetUserTransactionsQuery();
   
-  const userData = profileData?.user || {};
+  const userData = profileData || {};
   const transactions = transactionsData?.transactions || [];
   
-  // Calculate money in/out totals for last 30 days
+  const userBalance = userData?.bankBalance || 
+                      userData?.linkedAccounts?.[0]?.balance || 
+                      propBalance || 0;
+  
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
@@ -25,7 +28,6 @@ const AccountOverview = ({ balance }) => {
     .filter(t => t.type === "debit")
     .reduce((sum, t) => sum + t.amount, 0);
   
-  // Account info
   const accountInfo = {
     accountNumber: userData?.linkedAccounts?.[0]?.accountNumber || "XXXX-XXXX-0000",
     accountType: "Savings Account",
@@ -54,7 +56,7 @@ const AccountOverview = ({ balance }) => {
           <div className="flex justify-between items-start mb-6">
             <div>
               <p className="text-emerald-100 text-sm mb-1">Available Balance</p>
-              <h3 className="text-3xl font-bold">₹{balance.toLocaleString()}</h3>
+              <h3 className="text-3xl font-bold">₹{userBalance.toLocaleString()}</h3>
             </div>
             <div className="flex space-x-1">
               <span className="inline-flex items-center px-2 py-1 bg-white/20 rounded-full text-xs font-medium">

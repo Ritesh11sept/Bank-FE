@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Target, Trash2, X, PiggyBank, TrendingUp, BarChart } from 'lucide-react';
-import { POT_CATEGORIES } from '../savings/constants/potCategories';
+import { POT_CATEGORIES } from './constants/potCategories';
 import GoalCompletionCelebration from '../savings/GoalCompletionCelebration';
-import axios from '../../../utils/axios';
-import { useGetPotsQuery } from '../../../state/api';
+import axios from '../../utils/axios';
+import { useGetPotsQuery } from '../../state/api';
 
 const DeleteConfirmDialog = ({
   open,

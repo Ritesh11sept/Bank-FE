@@ -42,7 +42,10 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
   // Fetch user profile data
   const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
-  const userData = profileData?.user;
+  
+  // Fix: Access profile data directly without the .user property
+  // The API now returns the user data directly in the response
+  const userData = profileData;
 
   // Fetch notifications with periodic refetch
   const {
@@ -231,6 +234,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
     },
   ];
 
+  // Fix: Update account info to handle the new data structure
   const accountInfo = userData
     ? {
         name: userData.name,
@@ -258,6 +262,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
         kycStatus: "Unknown",
       };
 
+  // Fix: Update linked accounts access to match the new data structure
   const accountsList =
     userData?.linkedAccounts?.map((account, index) => ({
       accountNumber: account.accountNumber,

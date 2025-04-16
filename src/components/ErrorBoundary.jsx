@@ -3,37 +3,50 @@ import React, { Component } from 'react';
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { 
+      hasError: false,
+      error: null,
+      errorInfo: null
+    };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    // Update state so the next render will show the fallback UI
+    return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("Component Error:", error);
-    console.error("Error Info:", errorInfo);
+    // You can log the error to an error reporting service
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
   }
 
   render() {
     if (this.state.hasError) {
-      // Check for specific Redux Provider error
-      if (this.state.error?.message?.includes("react-redux context value")) {
-        return (
-          <div className="bg-white rounded-lg shadow-md p-4 flex items-center justify-center">
-            <p className="text-red-500">Redux Provider not found. Please ensure the app is wrapped in a Redux Provider.</p>
-          </div>
-        );
-      }
-      
-      // Generic error UI
+      // You can render any custom fallback UI
       return (
-        <div className="bg-white rounded-lg shadow-md p-4 flex items-center justify-center">
-          <p className="text-red-500">Something went wrong. Please try again later.</p>
+        <div className="error-boundary-fallback">
+          <h2>Something went wrong.</h2>
+          <details style={{ whiteSpace: 'pre-wrap' }}>
+            <summary>See error details</summary>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </details>
+          <button 
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={() => window.location.reload()}
+          >
+            Reload Page
+          </button>
         </div>
       );
     }
 
+    // If there's no error, render children normally
     return this.props.children;
   }
 }

@@ -8,7 +8,8 @@ import Footer from './Footer';
 import AboutModal from './About';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
-import Chatbot from '../../chatbot'; // Import the Chatbot component
+import Chatbot from '../../chatbot';
+import Header from './Header'; // Import the new Header component
 
 const NavButton = ({ children, variant = 'secondary', href, onClick }) => (
   <button
@@ -115,7 +116,7 @@ const HomePage = () => {
   const newsRef = useRef(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [showChatbot, setShowChatbot] = useState(false); // Add chatbot state
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const features = [
     {
@@ -184,40 +185,15 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen relative"> {/* Add relative positioning to parent */}
+    <div className="min-h-screen relative">
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       
-      {/* Enhanced Navigation */}
-      <nav className="px-4 lg:px-8 py-4 lg:py-6 flex flex-col lg:flex-row justify-between items-center fixed w-full top-0 z-50 backdrop-blur-md border-b border-white/10">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-4 mb-4 lg:mb-0"
-        >
-          <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-white text-xl lg:text-2xl font-bold">₹</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl lg:text-2xl font-bold text-white">FinanceSeer</span>
-            <span className="text-xs lg:text-sm text-emerald-400">Smart Financial Insights</span>
-          </div>
-        </motion.div>
-        
-        <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8">
-          <div className="flex flex-wrap justify-center items-center gap-3 lg:gap-6">
-            <NavButton onClick={() => handleNavigation('/about')}>About</NavButton>
-            <NavButton onClick={() => handleNavigation('/features')}>Features</NavButton>
-            <NavButton onClick={() => handleNavigation('/pricing')}>Pricing</NavButton>
-            <NavButton onClick={() => handleNavigation('/news')}>News</NavButton> {/* Changed from '/resources' to '/news' */}
-          </div>
-          <div className="flex items-center gap-4 mt-4 lg:mt-0 lg:ml-4 lg:before:content-[''] lg:before:w-px lg:before:h-8 lg:before:bg-white/10">
-            <NavButton onClick={() => setIsLoginOpen(true)}>Sign in</NavButton>
-            <NavButton variant="primary" onClick={() => setIsRegisterOpen(true)}>
-              Get Started
-            </NavButton>
-          </div>
-        </div>
-      </nav>
+      {/* Replaced navigation with the new Header component */}
+      <Header 
+        onNavigate={handleNavigation}
+        onLoginClick={() => setIsLoginOpen(true)}
+        onRegisterClick={() => setIsRegisterOpen(true)}
+      />
 
       {/* Main Content */}
       <main>
@@ -239,7 +215,7 @@ const HomePage = () => {
           </motion.div>
 
           {/* Hero Content */}
-          <div className="relative z-10 max-w-6xl mx-auto px-6">
+          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -248,25 +224,25 @@ const HomePage = () => {
               <motion.div 
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-white text-sm mb-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20"
+                className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1 sm:px-4 sm:py-1.5 bg-white/10 backdrop-blur-md rounded-full text-white text-xs sm:text-sm mb-4 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20"
               >
-                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-xs font-medium">
+                <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-xs font-medium">
                   NEW
                 </span>
                 UPI payments enabled 🚀
               </motion.div>
               
               <motion.h1 
-                className="text-7xl font-bold mb-6 text-white leading-tight"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-white leading-tight"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Your Financial Journey<br />Made Smarter
+                Your Financial Journey<br className="hidden sm:block" /> Made Smarter
               </motion.h1>
               
               <motion.p 
-                className="text-gray-200 text-xl max-w-2xl mx-auto mb-12"
+                className="text-gray-200 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 sm:mb-12 px-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -276,20 +252,20 @@ const HomePage = () => {
               </motion.p>
               
               <motion.div 
-                className="flex items-center justify-center gap-6"
+                className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
                 <button 
                   onClick={() => setIsRegisterOpen(true)}
-                  className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  Start Banking <ArrowRight className="w-5 h-5" />
+                  Start Banking <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button 
                   onClick={() => setIsLoginOpen(true)}
-                  className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20"
                 >
                   Login to Account
                 </button>
@@ -384,6 +360,7 @@ const HomePage = () => {
 
       {/* Add Footer at the bottom */}
       <Footer />
+      
     </div>
   );
 };

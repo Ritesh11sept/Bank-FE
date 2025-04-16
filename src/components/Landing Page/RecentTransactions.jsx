@@ -1,22 +1,82 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { FiClock, FiArrowDown, FiArrowUp, FiChevronRight, FiFilter } from "react-icons/fi";
-import { useGetUserTransactionsQuery } from "../../state/api";
-import Avatar from "react-avatar";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiClock, FiArrowDown, FiArrowUp, FiChevronRight, FiFilter, FiCheckCircle } from "react-icons/fi";
+import { useGetUserTransactionsQuery, useGetUserProfileQuery } from "../../state/api";
+import TransactionModal from "./TransactionModal";
 
 const RecentTransactions = () => {
   const [filter, setFilter] = useState("all"); // all, incoming, outgoing
-  const { data: transactionsData, isLoading } = useGetUserTransactionsQuery();
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const { data: transactionsData, isLoading, refetch } = useGetUserTransactionsQuery();
+  const { data: userProfile } = useGetUserProfileQuery();
+  
+  // Ensure user ID is consistent throughout the component
+  const [currentUserId, setCurrentUserId] = useState(localStorage.getItem('userId'));
+  
+  // Update userId when profile loads and refetch transactions
+  useEffect(() => {
+    if (userProfile && userProfile._id) {
+      const profileId = userProfile._id;
+      if (profileId !== currentUserId) {
+        console.log(`Updating current user ID from ${currentUserId} to ${profileId}`);
+        setCurrentUserId(profileId);
+        localStorage.setItem('userId', profileId);
+        refetch(); // Refetch transactions with updated userId
+      }
+    }
+  }, [userProfile, currentUserId, refetch]);
+  
+  // Debug transactions data 
+  useEffect(() => {
+    if (transactionsData?.transactions?.length > 0) {
+      // Log some transaction samples for debugging
+      const sampleTransactions = transactionsData.transactions.slice(0, 3);
+      
+      console.log('Transaction samples for debugging:');
+      sampleTransactions.forEach((t, i) => {
+        const receiverId = String(t.receiverId?.$oid || t.receiverId);
+        const senderId = String(t.senderId?.$oid || t.senderId);
+        const isIncoming = receiverId === currentUserId;
+        const isOutgoing = senderId === currentUserId;
+        
+        console.log(`Transaction ${i+1} - ID: ${t._id}`);
+        console.log(`- Current user: ${currentUserId}`);
+        console.log(`- Sender ID: ${senderId}, Receiver ID: ${receiverId}`);
+        console.log(`- Sender: ${t.senderName}, Receiver: ${t.receiverName}`);
+        console.log(`- Is incoming: ${isIncoming}, Is outgoing: ${isOutgoing}`);
+        console.log(`- Amount: ${t.amount}, Note: ${t.note || 'None'}`);
+      });
+    }
+  }, [transactionsData, currentUserId]);
   
   // Get transactions from API data
   const transactions = transactionsData?.transactions || [];
   
+  // Apply filtering with improved logic for current user
   const filteredTransactions = transactions.filter(transaction => {
+    // Process MongoDB ObjectId format if needed
+    const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
+    const senderId = String(transaction.senderId?.$oid || transaction.senderId);
+    
+    // Ensure we only show transactions relevant to the current user
+    const isIncoming = receiverId === currentUserId;
+    const isOutgoing = senderId === currentUserId;
+    
+    // Skip transactions not related to current user
+    if (!isIncoming && !isOutgoing) {
+      console.log(`Skipping transaction not related to current user: ${transaction._id}`);
+      return false;
+    }
+    
+    // Apply filter if specified
     if (filter === "all") return true;
-    if (filter === "incoming") return transaction.type === "credit";
-    if (filter === "outgoing") return transaction.type === "debit";
+    if (filter === "incoming") return isIncoming;
+    if (filter === "outgoing") return isOutgoing;
     return true;
   });
+
+  // Only show the latest 5 transactions
+  const visibleTransactions = filteredTransactions.slice(0, 5);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -28,146 +88,178 @@ const RecentTransactions = () => {
     });
   };
 
+  // Function to get transaction display properties
+  const getTransactionDisplay = (transaction) => {
+    // Process MongoDB ObjectId format if needed
+    const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
+    const senderId = String(transaction.senderId?.$oid || transaction.senderId);
+    
+    // Check if current user is receiver (incoming) or sender (outgoing)
+    const isIncoming = receiverId === currentUserId;
+    
+    return {
+      isIncoming,
+      statusColor: transaction.status === "completed" ? "text-green-600" : 
+                  transaction.status === "pending" ? "text-amber-500" : "text-red-500",
+      amountDisplay: isIncoming ? 
+        `+₹${transaction.amount.toLocaleString()}` : 
+        `-₹${transaction.amount.toLocaleString()}`,
+      amountColor: isIncoming ? "text-green-600" : "text-red-600",
+      icon: isIncoming ? <FiArrowDown size={16} /> : <FiArrowUp size={16} />,
+      iconBg: isIncoming ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600",
+      party: isIncoming ? 
+        `From: ${transaction.senderName || 'Unknown'}` : 
+        `To: ${transaction.receiverName || 'Unknown'}`,
+      description: transaction.note || (isIncoming ? "Received payment" : "Sent payment")
+    };
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-    >
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h2 className="text-xl font-bold mb-1">Recent Transactions</h2>
-          <p className="text-gray-500 text-sm">Your recent money movements</p>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+      >
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-xl font-bold mb-1">Recent Transactions</h2>
+            <p className="text-gray-500 text-sm">
+              {userProfile?.name ? `${userProfile.name}'s` : 'Your'} last {visibleTransactions.length} transactions
+            </p>
+          </div>
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <FiClock className="h-6 w-6 text-purple-600" />
+          </div>
         </div>
-        <div className="p-2 bg-purple-100 rounded-lg">
-          <FiClock className="h-6 w-6 text-purple-600" />
-        </div>
-      </div>
-      
-      <div className="flex mb-4 gap-2">
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-lg ${
-            filter === "all" 
-              ? "bg-gray-800 text-white" 
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilter("incoming")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-lg flex items-center ${
-            filter === "incoming" 
-              ? "bg-green-600 text-white" 
-              : "bg-green-50 text-green-700 hover:bg-green-100"
-          }`}
-        >
-          <FiArrowDown className="mr-1" size={14} /> Incoming
-        </button>
-        <button
-          onClick={() => setFilter("outgoing")}
-          className={`px-3 py-1.5 text-sm font-medium rounded-lg flex items-center ${
-            filter === "outgoing" 
-              ? "bg-red-600 text-white" 
-              : "bg-red-50 text-red-700 hover:bg-red-100"
-          }`}
-        >
-          <FiArrowUp className="mr-1" size={14} /> Outgoing
-        </button>
         
-        <div className="ml-auto">
-          <button className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200">
-            <FiFilter size={18} />
+        <div className="flex mb-4 gap-2">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg ${
+              filter === "all" 
+                ? "bg-gray-800 text-white" 
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("incoming")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg flex items-center ${
+              filter === "incoming" 
+                ? "bg-green-600 text-white" 
+                : "bg-green-50 text-green-700 hover:bg-green-100"
+            }`}
+          >
+            <FiArrowDown className="mr-1" size={14} /> Incoming
+          </button>
+          <button
+            onClick={() => setFilter("outgoing")}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg flex items-center ${
+              filter === "outgoing" 
+                ? "bg-red-600 text-white" 
+                : "bg-red-50 text-red-700 hover:bg-red-100"
+            }`}
+          >
+            <FiArrowUp className="mr-1" size={14} /> Outgoing
           </button>
         </div>
-      </div>
-      
-      {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, index) => (
-            <div key={index} className="animate-pulse flex justify-between p-3 rounded-lg">
-              <div className="flex items-center">
-                <div className="h-10 w-10 bg-gray-200 rounded-full mr-3"></div>
-                <div>
-                  <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 w-16 bg-gray-200 rounded"></div>
+        
+        {isLoading ? (
+          <div className="space-y-3 overflow-hidden max-h-80">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="animate-pulse flex justify-between p-3 rounded-lg">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full mr-3"></div>
+                  <div>
+                    <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="h-4 w-16 bg-gray-200 rounded mb-2 ml-auto"></div>
+                  <div className="h-3 w-20 bg-gray-200 rounded ml-auto"></div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="h-4 w-16 bg-gray-200 rounded mb-2 ml-auto"></div>
-                <div className="h-3 w-20 bg-gray-200 rounded ml-auto"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : filteredTransactions.length > 0 ? (
-        <div className="space-y-1">
-          {filteredTransactions.map((transaction) => (
-            <motion.div
-              key={transaction._id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center">
-                <div className={`p-2 rounded-full mr-3 ${
-                  transaction.type === "credit" 
-                    ? "bg-green-100 text-green-600" 
-                    : "bg-red-100 text-red-600"
-                }`}>
-                  {transaction.type === "credit" ? (
-                    <FiArrowDown size={16} />
-                  ) : (
-                    <FiArrowUp size={16} />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">
-                    {transaction.type === "credit" 
-                      ? `From: ${transaction.senderName || transaction.senderId}` 
-                      : `To: ${transaction.receiverName || transaction.receiverId}`}
-                  </p>
-                  <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="text-right mr-2">
-                  <p className={`font-medium ${
-                    transaction.type === "credit" 
-                      ? "text-green-600" 
-                      : "text-red-600"
-                  }`}>
-                    {transaction.type === "credit" ? "+" : "-"}₹{transaction.amount.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate max-w-[150px]">
-                    {transaction.note || (transaction.type === "credit" ? "Received payment" : "Sent payment")}
-                  </p>
-                </div>
-                <FiChevronRight className="opacity-0 group-hover:opacity-100 text-gray-400" />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-10">
-          <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <FiClock className="h-8 w-8 text-gray-400" />
+            ))}
           </div>
-          <h3 className="text-lg font-medium text-gray-700 mb-1">No transactions yet</h3>
-          <p className="text-gray-500 text-sm">
-            Your transaction history will appear here after you make your first transfer
-          </p>
+        ) : visibleTransactions.length > 0 ? (
+          <div className="space-y-1 overflow-hidden">
+            {visibleTransactions.map((transaction) => {
+              const {
+                isIncoming, statusColor, amountDisplay, amountColor, 
+                icon, iconBg, party, description
+              } = getTransactionDisplay(transaction);
+              
+              return (
+                <motion.div
+                  key={transaction._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    <div className={`p-2 rounded-full mr-3 ${iconBg}`}>
+                      {icon}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{party}</p>
+                      <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-right mr-2">
+                      <div className="flex items-center justify-end">
+                        <p className={`font-medium ${amountColor}`}>{amountDisplay}</p>
+                        {transaction.status === "completed" && (
+                          <FiCheckCircle className="ml-1 text-green-500" size={12} />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 truncate max-w-[150px]">{description}</p>
+                    </div>
+                    <FiChevronRight className="opacity-0 group-hover:opacity-100 text-gray-400" />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <FiClock className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-700 mb-1">No transactions yet</h3>
+            <p className="text-gray-500 text-sm">
+              Your transaction history will appear here after you make your first transfer
+            </p>
+          </div>
+        )}
+        
+        <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+          <button 
+            onClick={() => setShowAllTransactions(true)}
+            className="text-sm text-blue-600 font-medium hover:text-blue-700 inline-flex items-center"
+          >
+            View All Transactions <FiChevronRight className="ml-1" size={16} />
+          </button>
         </div>
-      )}
-      
-      <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-        <button className="text-sm text-blue-600 font-medium hover:text-blue-700 inline-flex items-center">
-          View All Transactions <FiChevronRight className="ml-1" size={16} />
-        </button>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* Render the Transaction Modal */}
+      <AnimatePresence>
+        {showAllTransactions && (
+          <TransactionModal 
+            transactions={transactions} 
+            onClose={() => setShowAllTransactions(false)} 
+            formatDate={formatDate}
+            getTransactionDisplay={getTransactionDisplay}
+            currentUserId={currentUserId}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

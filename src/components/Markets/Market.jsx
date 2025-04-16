@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../Dashboard/DashboardLayout";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import StockTable from "./components/StockTable";
+import AiRecommendations from "./components/AiRecommendations";
+import StockAnalysisModal from "./components/StockAnalysisModal";
+import MarketHeader from "./components/MarketHeader";
+import { generateMockHistoricalData, getCompanyName } from "./utils/marketUtils";
 
-//enter the mock data of my finstockapi ok
-const STOCK_API_KEY = "API_KEY";
-const API_URL = "https://finnhub.io/api/v1";
+const ALPHA_VANTAGE_API_KEY = import.meta.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY || "IAC8TV9BJANVO1ZI";
+const GEMINI_API_KEY = import.meta.env.VITE_API_KEY;
+const ALPHA_VANTAGE_API_URL = "https://www.alphavantage.co/query";
 
 const Market = () => {
   const [stocks, setStocks] = useState([]);
@@ -16,18 +20,22 @@ const Market = () => {
     key: "symbol",
     direction: "ascending",
   });
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState("");
 
   const stockSymbols = [
-    "AAPL",
-    "MSFT",
-    "GOOGL",
-    "AMZN",
-    "META",
-    "TSLA",
-    "NVDA",
-    "JPM",
-    "V",
-    "WMT",
+    "RELIANCE.BSE",
+    "TCS.BSE",
+    "HDFCBANK.BSE",
+    "INFY.BSE",
+    "HINDUNILVR.BSE",
+    "ICICIBANK.BSE",
+    "SBIN.BSE",
+    "BHARTIARTL.BSE",
+    "WIPRO.BSE",
+    "HCLTECH.BSE",
   ];
 
   useEffect(() => {
@@ -35,57 +43,81 @@ const Market = () => {
       try {
         setLoading(true);
 
-        // in prodenv, use the commented code:
-        /*
-        const stockData = await Promise.all(
+        // Using traditional ALPHA_VANTAGE API approach
+        const fetchAlphaVantageData = async (symbol) => {
+          try {
+            const params = new URLSearchParams({
+              function: "GLOBAL_QUOTE",
+              symbol: symbol.split('.')[0],
+              apikey: ALPHA_VANTAGE_API_KEY
+            });
+            
+            const response = await fetch(`${ALPHA_VANTAGE_API_URL}?${params}`);
+            if (!response.ok) throw new Error("Failed to fetch Alpha Vantage data");
+            
+            const data = await response.json();
+            const quote = data["Global Quote"];
+            
+            if (quote && quote["01. symbol"]) {
+              return {
+                price: parseFloat(quote["05. price"]),
+                high: parseFloat(quote["03. high"]),
+                low: parseFloat(quote["04. low"]),
+              };
+            }
+            return null;
+          } catch (error) {
+            console.warn(`Alpha Vantage API error for ${symbol}:`, error);
+            return null;
+          }
+        };
+
+        const mockStockData = await Promise.all(
           stockSymbols.map(async (symbol) => {
-            const quoteResponse = await fetch(`${API_URL}/quote?symbol=${symbol}&token=${STOCK_API_KEY}`);
-            const quoteData = await quoteResponse.json();
+            // Try to get real data first
+            const realData = await fetchAlphaVantageData(symbol);
             
-            const profileResponse = await fetch(`${API_URL}/stock/profile2?symbol=${symbol}&token=${STOCK_API_KEY}`);
-            const profileData = await profileResponse.json();
-            
+            // Use realistic mock data as fallback
+            const basePrice = realData?.price || Math.random() * 3000 + 500;
+            const currentPrice = realData?.price || basePrice + (Math.random() * 50 - 25);
+            const change = currentPrice - basePrice;
+            const percentChange = (change / basePrice) * 100;
+            const sectorMap = {
+              "RELIANCE.BSE": "Energy",
+              "TCS.BSE": "Information Technology",
+              "HDFCBANK.BSE": "Financial Services",
+              "INFY.BSE": "Information Technology",
+              "HINDUNILVR.BSE": "Consumer Goods",
+              "ICICIBANK.BSE": "Financial Services",
+              "SBIN.BSE": "Financial Services",
+              "BHARTIARTL.BSE": "Telecommunications",
+              "WIPRO.BSE": "Information Technology",
+              "HCLTECH.BSE": "Information Technology",
+            };
+
             return {
               symbol,
-              name: profileData.name || symbol,
-              price: quoteData.c || 0,
-              change: quoteData.d || 0,
-              percentChange: quoteData.dp || 0,
-              high: quoteData.h || 0,
-              low: quoteData.l || 0,
-              prevClose: quoteData.pc || 0,
-              marketCap: profileData.marketCapitalization || 0,
-              logo: profileData.logo || '',
-              historicalPrices: generateMockHistoricalData(quoteData.c || 100, 30),
+              name: getCompanyName(symbol),
+              price: parseFloat(currentPrice.toFixed(2)),
+              change: parseFloat(change.toFixed(2)),
+              percentChange: parseFloat(percentChange.toFixed(2)),
+              high: parseFloat((realData?.high || currentPrice + Math.random() * 30).toFixed(2)),
+              low: parseFloat((realData?.low || currentPrice - Math.random() * 30).toFixed(2)),
+              prevClose: parseFloat(basePrice.toFixed(2)),
+              marketCap: parseFloat((Math.random() * 200 + 10).toFixed(2)),
+              volume: Math.floor(Math.random() * 10000000),
+              sector: sectorMap[symbol] || "N/A",
+              peRatio: parseFloat((Math.random() * 50 + 5).toFixed(2)),
+              historicalPrices: generateMockHistoricalData(currentPrice, 30),
             };
           })
         );
-        */
-
-        const mockStockData = stockSymbols.map((symbol) => {
-          const basePrice = Math.random() * 1000 + 50;
-          const currentPrice = basePrice + (Math.random() * 20 - 10);
-          const change = currentPrice - basePrice;
-          const percentChange = (change / basePrice) * 100;
-
-          return {
-            symbol,
-            name: getCompanyName(symbol),
-            price: parseFloat(currentPrice.toFixed(2)),
-            change: parseFloat(change.toFixed(2)),
-            percentChange: parseFloat(percentChange.toFixed(2)),
-            high: parseFloat((currentPrice + Math.random() * 5).toFixed(2)),
-            low: parseFloat((currentPrice - Math.random() * 5).toFixed(2)),
-            prevClose: parseFloat(basePrice.toFixed(2)),
-            marketCap: parseFloat((Math.random() * 1000 + 50).toFixed(2)),
-            volume: Math.floor(Math.random() * 10000000),
-            historicalPrices: generateMockHistoricalData(currentPrice, 30),
-          };
-        });
 
         setStocks(mockStockData);
         setFilteredStocks(mockStockData);
         setLoading(false);
+
+        generateAiRecommendations(mockStockData);
       } catch (err) {
         setError("Failed to fetch stock data");
         setLoading(false);
@@ -102,42 +134,69 @@ const Market = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const getCompanyName = (symbol) => {
-    const companies = {
-      AAPL: "Apple Inc.",
-      MSFT: "Microsoft Corporation",
-      GOOGL: "Alphabet Inc.",
-      AMZN: "Amazon.com, Inc.",
-      META: "Meta Platforms, Inc.",
-      TSLA: "Tesla, Inc.",
-      NVDA: "NVIDIA Corporation",
-      JPM: "JPMorgan Chase & Co.",
-      V: "Visa Inc.",
-      WMT: "Walmart Inc.",
-    };
-    return companies[symbol] || symbol;
+  const generateAiRecommendations = async (stockData) => {
+    setAiLoading(true);
+    try {
+      setTimeout(() => {
+        const topStocks = [...stockData]
+          .sort((a, b) => {
+            const aScore = a.percentChange - (a.peRatio / 10) + (Math.random() * 5);
+            const bScore = b.percentChange - (b.peRatio / 10) + (Math.random() * 5);
+            return bScore - aScore;
+          })
+          .slice(0, 3);
+        
+        const mockRecommendations = topStocks.map(stock => ({
+          symbol: stock.symbol,
+          name: stock.name,
+          reason: generateRecommendationReason(stock),
+          confidence: Math.floor(Math.random() * 30 + 70),
+          price: stock.price,
+          change: stock.percentChange
+        }));
+        
+        setAiRecommendations(mockRecommendations);
+        setAiLoading(false);
+      }, 1500);
+    } catch (error) {
+      console.error("Error generating AI recommendations:", error);
+      setAiLoading(false);
+    }
   };
 
-  const generateMockHistoricalData = (currentPrice, days) => {
-    const data = [];
-    let price = currentPrice;
+  const generateRecommendationReason = (stock) => {
+    const reasons = [
+      `Strong growth potential in the ${stock.sector} sector with favorable PE ratio of ${stock.peRatio.toFixed(2)}.`,
+      `Solid financial performance with recent momentum of ${stock.percentChange > 0 ? '+' : ''}${stock.percentChange.toFixed(2)}%.`,
+      `Undervalued stock with significant upside potential based on technical analysis.`,
+      `Market leader in ${stock.sector} with robust volume of ${(stock.volume/1000000).toFixed(2)}M shares.`,
+      `Consistent performance with good entry point at current price level of ₹${stock.price.toFixed(2)}.`
+    ];
+    
+    return reasons[Math.floor(Math.random() * reasons.length)];
+  };
 
-    for (let i = days; i > 0; i--) {
-      price = price + (Math.random() * 10 - 5);
-      data.push({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-        price: parseFloat(price.toFixed(2)),
-      });
+  const getStockAnalysis = async (stock) => {
+    setSelectedStock(stock);
+    setAiAnalysis("Generating analysis..."); 
+    
+    // We'll move the detailed analysis generation to the StockAnalysisModal component
+    // Just pass the stock data to the modal and let it handle the rendering
+    try {
+      setTimeout(() => {
+        // Only pass the essential data for analysis
+        const analysisData = {
+          stock: stock,
+          sentiment: stock.percentChange > 0 ? "positive" : "negative",
+          recommendation: stock.percentChange > 2 ? "Buy" : (stock.percentChange > -2 ? "Hold" : "Sell")
+        };
+        
+        setAiAnalysis(JSON.stringify(analysisData));
+      }, 2000);
+    } catch (error) {
+      console.error("Error generating stock analysis:", error);
+      setAiAnalysis("Failed to generate analysis. Please try again later.");
     }
-
-    data.push({
-      date: new Date().toISOString().split("T")[0],
-      price: parseFloat(currentPrice.toFixed(2)),
-    });
-
-    return data;
   };
 
   useEffect(() => {
@@ -147,7 +206,8 @@ const Market = () => {
       const filtered = stocks.filter(
         (stock) =>
           stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          stock.name.toLowerCase().includes(searchTerm.toLowerCase())
+          stock.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          stock.sector.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredStocks(filtered);
     }
@@ -173,40 +233,19 @@ const Market = () => {
     setFilteredStocks(sortedStocks);
   };
 
-  const SparklineChart = ({ data, width = 100, height = 30, color }) => {
-    if (!data || data.length === 0) return null;
-
-    const prices = data.map((item) => item.price);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const range = maxPrice - minPrice;
-
-    const normalizedPrices =
-      range === 0
-        ? prices.map(() => height / 2)
-        : prices.map((price) => height - ((price - minPrice) / range) * height);
-
-    const points = normalizedPrices
-      .map((price, i) => `${(i / (prices.length - 1)) * width},${price}`)
-      .join(" ");
-
-    return (
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-        <polyline
-          fill="none"
-          stroke={color}
-          strokeWidth="1.5"
-          points={points}
-        />
-      </svg>
-    );
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center h-64">
-          <div className="text-xl font-semibold">Loading stock data...</div>
+          <div className="text-xl font-semibold text-emerald-700">
+            <div className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Loading stock data...
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -216,215 +255,71 @@ const Market = () => {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center h-64">
-          <div className="text-xl font-semibold text-red-500">{error}</div>
+          <div className="text-xl font-semibold text-red-500 bg-red-50 px-4 py-3 rounded-lg border border-red-200">
+            {error}
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  const topGainers = [...stocks]
-    .sort((a, b) => b.percentChange - a.percentChange)
-    .slice(0, 3);
-
   return (
-    <div>
-      <DashboardLayout>
-        <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold mb-6">Stock Market Dashboard</h1>
-
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Top Performers</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {topGainers.map((stock) => (
-                <div
-                  key={stock.symbol}
-                  className="bg-white rounded-lg shadow-md p-4 border-l-4"
-                  style={{
-                    borderLeftColor: stock.change >= 0 ? "#10b981" : "#ef4444",
-                  }}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-lg">{stock.symbol}</h3>
-                      <p className="text-gray-600 text-sm">{stock.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold">
-                        ${stock.price.toLocaleString()}
-                      </p>
-                      <p
-                        className={`flex items-center ${
-                          stock.change >= 0 ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {stock.change >= 0 ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        )}
-                        {stock.change.toFixed(2)} (
-                        {stock.percentChange.toFixed(2)}%)
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <SparklineChart
-                      data={stock.historicalPrices}
-                      color={stock.change >= 0 ? "#10b981" : "#ef4444"}
-                    />
-                  </div>
-                </div>
-              ))}
+    <DashboardLayout>
+      <div className="px-6 py-8 bg-white min-h-screen">
+        <MarketHeader />
+        
+        <AiRecommendations 
+          recommendations={aiRecommendations} 
+          loading={aiLoading} 
+          getStockAnalysis={getStockAnalysis} 
+          stocks={stocks}
+        />
+        
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-emerald-800 flex items-center">
+            <span className="bg-emerald-100 p-1 rounded-md mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </span>
+            Market Overview
+          </h2>
+          
+          <div className="relative mb-4">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
+            <input
+              type="text"
+              className="bg-white border-2 border-emerald-100 text-gray-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 p-2.5 transition-all duration-200"
+              placeholder="Search by symbol, company name, or sector..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold mb-4">All Stocks</h2>
-            <div className="relative mb-4">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search size={18} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
-                placeholder="Search stocks by symbol or company name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("symbol")}
-                    >
-                      <div className="flex items-center">
-                        Symbol
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("name")}
-                    >
-                      <div className="flex items-center">
-                        Name
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("price")}
-                    >
-                      <div className="flex items-center">
-                        Price
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("change")}
-                    >
-                      <div className="flex items-center">
-                        Change
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("percentChange")}
-                    >
-                      <div className="flex items-center">
-                        % Change
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Chart
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => requestSort("marketCap")}
-                    >
-                      <div className="flex items-center">
-                        Market Cap (B)
-                        <ArrowUpDown size={14} className="ml-1" />
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStocks.map((stock) => (
-                    <tr key={stock.symbol} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                        {stock.symbol}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {stock.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${stock.price.toLocaleString()}
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm ${
-                          stock.change >= 0 ? "text-green-500" : "text-red-500"
-                        }`}
-                      >
-                        {stock.change >= 0 ? "+" : ""}
-                        {stock.change.toFixed(2)}
-                      </td>
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm ${
-                          stock.percentChange >= 0
-                            ? "text-green-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        <div className="flex items-center">
-                          {stock.change >= 0 ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          )}
-                          {stock.percentChange.toFixed(2)}%
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <SparklineChart
-                          data={stock.historicalPrices}
-                          color={stock.change >= 0 ? "#10b981" : "#ef4444"}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${stock.marketCap.toLocaleString()}B
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {filteredStocks.length === 0 && (
-              <div className="text-center py-4 text-gray-500">
-                No stocks found matching your search criteria.
-              </div>
-            )}
-          </div>
+          <StockTable 
+            stocks={filteredStocks} 
+            requestSort={requestSort} 
+            sortConfig={sortConfig}
+            getStockAnalysis={getStockAnalysis}
+          />
         </div>
-      </DashboardLayout>
-    </div>
+
+        {selectedStock && (
+          <StockAnalysisModal 
+            selectedStock={selectedStock} 
+            aiAnalysis={aiAnalysis} 
+            onClose={() => {
+              setSelectedStock(null);
+              setAiAnalysis("");
+            }} 
+          />
+        )}
+      </div>
+    </DashboardLayout>
   );
 };
 

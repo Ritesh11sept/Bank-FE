@@ -6,7 +6,7 @@ import RegistrationForm from './RegistrationForm';
 import PasswordSetup from './PasswordSetup';
 import OTPVerification from './OTPVerification';
 import Toast from './Toast';
-import { useRegisterUserMutation, useExtractPANDetailsMutation } from '../state/api';
+import { useRegisterUserMutation, useExtractPANDetailsMutation } from '../../state/api';
 
 const RegisterModal = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);

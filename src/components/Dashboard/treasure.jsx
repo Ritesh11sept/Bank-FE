@@ -11,7 +11,7 @@ import {
   useUpdateLoginStreakMutation,
   useRevealScratchCardMutation,
   useSubmitGameScoreMutation 
-} from "../state/api";
+} from "../../state/api";
 
 const Treasures = () => {
   // Game states

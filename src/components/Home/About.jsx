@@ -10,7 +10,7 @@ const AboutModal = ({ isOpen, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] shadow-xl animate-in fade-in zoom-in overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] md:max-h-[90vh] lg:max-h-[95vh] lg:max-w-4xl xl:max-w-5xl shadow-xl animate-in fade-in zoom-in overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header with emerald gradient */}
@@ -27,7 +27,7 @@ const AboutModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Scrollable content area */}
-        <div className="overflow-y-auto px-4 sm:px-6 py-4 flex-grow">
+        <div className="overflow-y-auto px-4 sm:px-6 md:px-8 py-4 md:py-6 flex-grow">
           <div className="prose max-w-none">
             <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
               FinanceSeer is a revolutionary financial management platform that simplifies how you track and manage your finances across multiple bank accounts. By simply connecting your PAN card, you get instant access to all your linked bank accounts in one place.
@@ -43,7 +43,7 @@ const AboutModal = ({ isOpen, onClose }) => {
             
             {/* Features section */}
             <h3 className="text-emerald-800 font-semibold mt-4 sm:mt-6 mb-3 sm:mb-4">Key Features</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="flex items-start gap-3">
                 <div className="mt-1 bg-emerald-100 p-2 rounded-full">
                   <Target className="w-4 h-4 text-emerald-600" />

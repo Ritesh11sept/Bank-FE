@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Lottie from 'react-lottie';
-import successAnimation from '../../../assets/success-animation.json';
+import successAnimation from '../../assets/success-animation.json';
 
 const SuccessAnimation = ({ title, subtitle, onComplete }) => {
   useEffect(() => {

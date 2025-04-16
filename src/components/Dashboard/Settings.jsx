@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle, FaLock, FaIdCard, FaBell, FaTimes, FaChevronDown, FaCheck, FaToggleOn, FaToggleOff } from 'react-icons/fa';
-import { useGetUserProfileQuery } from "../state/api";
+import { useGetUserProfileQuery } from "../../state/api";
 import { format } from 'date-fns';
 
 const Settings = ({ onClose }) => {
@@ -10,7 +10,9 @@ const Settings = ({ onClose }) => {
   
   // Fetch user profile data
   const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
-  const userData = profileData?.user;
+  
+  // Fix: Access profile data directly without the .user property
+  const userData = profileData; // The API now returns the user data directly
 
   // Default user settings
   const [userSettings, setUserSettings] = useState({

@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import DashboardLayout from "./DashboardLayout";
 import { Plus, Info, BarChart3, Calendar, Sparkles, Wallet, TrendingUp, X } from 'lucide-react';
-import { useGetPotsQuery, useDeletePotMutation } from "../state/api";
-import { POT_CATEGORIES } from '../scenes/savings/constants/potCategories';
-import AboutPotsDialog from '../scenes/savings/AboutPotsDialog';
-import CreatePotDialog from '../scenes/savings/CreatePotDialog';
-import TransactionDialog from '../scenes/savings/TransactionDialogs';
-import SetGoalDialog from '../scenes/savings/SetGoalDialog';
-import PotGrid from '../scenes/savings/PotGrid';
-import AIAssistant from '../scenes/savings/AIAssistant';
+import { useGetPotsQuery, useDeletePotMutation } from "../../state/api";
+import { POT_CATEGORIES } from '../Savings/constants/potCategories';
+import AboutPotsDialog from '../Savings/AboutPotsDialog';
+import CreatePotDialog from '../Savings/CreatePotDialog';
+import TransactionDialog from '../Savings/TransactionDialogs';
+import SetGoalDialog from '../Savings/SetGoalDialog';
+import PotGrid from '../Savings/PotGrid';
+import AIAssistant from '../Savings/AIAssistant';
 import axios from '../../utils/axios';
 
 const StatCard = ({ icon, label, value, color }) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactConfetti from 'react-confetti';
 import Lottie from 'react-lottie';
-import successAnimation from '../../../assets/success-animation.json';
+import successAnimation from '../../assets/success-animation.json';
 
 const GoalCompletionCelebration = ({
   potName,

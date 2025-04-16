@@ -1,48 +1,41 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import Dashboard from "./components/scenes/Analytics/dashboard";
+import Dashboard from "./components/Analytics/dashboard";
 import Predictions from "./components/Dashboard/prediction";
 import Home from "./components/Home/Home";
 import Landing from "./components/Dashboard/Landing";
-import Insights from "./components/Dashboard/insights";
 import Treasures from "./components/Dashboard/treasure";
 import Savings from "./components/Dashboard/saving";
-import ReduxProvider from "./components/ReduxProvider";
-import ErrorBoundary from "./components/ErrorBoundary";
 import Market from "./components/Markets/Market";
-import AdminDashboard from './Admin/AdminDashboard';
- 
+import AdminDashboard from './components/Admin/AdminDashboard';
+import ErrorBoundary from './components/ErrorBoundary';
+import { Provider } from 'react-redux';
+import { store } from './state/store';
 
-const AppContent = () => {
+const App = () => {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/landing" element={<Landing />} />
-        <Route path="/markets" element={<Market />} />
-        <Route path="/dashboard" element={
-          <ErrorBoundary>
-            <Dashboard />
-          </ErrorBoundary>
-        } />
-        <Route path="/predictions" element={<Predictions />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/treasures" element={<Treasures />} />
-        <Route path="/savings" element={<Savings />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      </Routes>
-    </main>
+    <Provider store={store}>
+      <BrowserRouter>
+        <main className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/markets" element={<Market />} />
+            <Route path="/dashboard" element={
+              <ErrorBoundary>
+                <Dashboard />
+              </ErrorBoundary>
+            } />
+            <Route path="/predictions" element={<Predictions />} />
+            <Route path="/treasures" element={<Treasures />} />
+            <Route path="/savings" element={<Savings />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Routes>
+        </main>
+      </BrowserRouter>
+    </Provider>
   );
 };
-
-function App() {
-  return (
-    <ReduxProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </ReduxProvider>
-  );
-}
 
 export default App;

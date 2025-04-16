@@ -1,17 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ 
+  baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
     prepareHeaders: (headers, { getState, endpoint }) => {
       headers.set('Accept', 'application/json');
       headers.set('Content-Type', 'application/json');
-      
-      // Add auth token if available in localStorage - check for both user and admin tokens
+
       const token = localStorage.getItem('token');
       const adminToken = localStorage.getItem('adminToken');
-      
-      // Use the endpoint name to determine which token to use instead of a custom header
+
       if (adminToken && endpoint.startsWith('admin')) {
         headers.set('Authorization', `Bearer ${adminToken}`);
         console.log('Using admin token for admin endpoint:', endpoint);
@@ -19,30 +17,20 @@ export const api = createApi({
         headers.set('Authorization', `Bearer ${token}`);
         console.log('Using user token for endpoint:', endpoint);
       }
-      
-      console.log('Using Base URL:', import.meta.env.VITE_BASE_URL || 'http://localhost:9000');
+
+      console.log('Request Headers:', Object.fromEntries(headers.entries()));
+      console.log('Endpoint:', endpoint);
+
       return headers;
     },
   }),
   reducerPath: "main",
-  tagTypes: ["Kpis", "Products", "Transactions", "Pots", "User", "Rewards", "Notifications", "AdminData"],
+  tagTypes: [
+    "Products", "Transactions", "Pots", "User", "Rewards", "Notifications",
+    "AdminData", "SystemStats", "Users", "TransactionStats",
+    "ActiveUsers", "FlaggedTransactions", "PotStats"
+  ],
   endpoints: (build) => ({
-    getKpis: build.query({
-      query: () => {
-        const url = "kpi/kpis";
-        console.log('Fetching KPIs from:', import.meta.env.VITE_BASE_URL + url);
-        return url;
-      },
-      transformResponse: (response) => {
-        console.log('KPIs Response:', response);
-        return response;
-      },
-      transformErrorResponse: (error) => {
-        console.error('KPIs Error:', error);
-        return error;
-      },
-      providesTags: ["Kpis"],
-    }),
     getProducts: build.query({
       query: () => "product/products/",
       providesTags: ["Products"],
@@ -52,14 +40,13 @@ export const api = createApi({
       providesTags: ["Transactions"],
     }),
 
-    // Pots endpoints
     getPots: build.query({
       query: () => "pots",
       providesTags: ["Pots"],
-      transformErrorResponse: (response) => 
+      transformErrorResponse: (response) =>
         response.data?.message || 'Failed to load pots',
     }),
-    
+
     createPot: build.mutation({
       query: (pot) => ({
         url: "pots",
@@ -68,7 +55,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Pots"],
     }),
-    
+
     depositToPot: build.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/deposit`,
@@ -77,7 +64,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Pots"],
     }),
-    
+
     withdrawFromPot: build.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/withdraw`,
@@ -86,7 +73,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Pots"],
     }),
-    
+
     updatePotGoal: build.mutation({
       query: ({ potId, data }) => ({
         url: `/pots/${potId}/goal`,
@@ -95,7 +82,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Pots"],
     }),
-    
+
     deletePot: build.mutation({
       query: (id) => ({
         url: `pots/${id}`,
@@ -104,7 +91,6 @@ export const api = createApi({
       invalidatesTags: ["Pots"],
     }),
 
-    // Authentication endpoints
     registerUser: build.mutation({
       query: (userData) => {
         console.log('Register endpoint called with:', userData);
@@ -116,7 +102,7 @@ export const api = createApi({
       },
       invalidatesTags: ["User"],
     }),
-    
+
     verifyOTP: build.mutation({
       query: (otpData) => ({
         url: 'user/verify-otp',
@@ -124,7 +110,7 @@ export const api = createApi({
         body: otpData,
       }),
     }),
-    
+
     extractPANDetails: build.mutation({
       query: (imageData) => ({
         url: 'user/extract-pan-details',
@@ -132,7 +118,7 @@ export const api = createApi({
         body: imageData,
       }),
     }),
-    
+
     loginUser: build.mutation({
       query: (credentials) => ({
         url: 'user/login',
@@ -141,7 +127,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["User"],
     }),
-    
+
     getLinkedAccounts: build.mutation({
       query: (panData) => ({
         url: 'user/getLinkedAccounts',
@@ -150,7 +136,6 @@ export const api = createApi({
       }),
     }),
 
-    // User profile endpoint
     getUserProfile: build.query({
       query: () => "user/profile",
       providesTags: ["User"],
@@ -164,12 +149,11 @@ export const api = createApi({
       },
     }),
 
-    // Rewards endpoints
     getUserRewards: build.query({
       query: () => "rewards",
       providesTags: ["Rewards"],
     }),
-    
+
     updateLoginStreak: build.mutation({
       query: () => ({
         url: "rewards/login-streak",
@@ -177,7 +161,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Rewards", "User"],
     }),
-    
+
     revealScratchCard: build.mutation({
       query: (cardId) => ({
         url: `rewards/scratch-card/${cardId}`,
@@ -185,7 +169,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Rewards", "User"],
     }),
-    
+
     submitGameScore: build.mutation({
       query: (scoreData) => ({
         url: "rewards/game-score",
@@ -195,7 +179,6 @@ export const api = createApi({
       invalidatesTags: ["Rewards", "User"],
     }),
 
-    // Notifications endpoints
     getNotifications: build.query({
       query: () => "rewards/notifications",
       providesTags: ["Notifications"],
@@ -204,7 +187,7 @@ export const api = createApi({
         return response;
       },
     }),
-    
+
     markNotificationsRead: build.mutation({
       query: (data) => ({
         url: "rewards/notifications/read",
@@ -213,8 +196,7 @@ export const api = createApi({
       }),
       invalidatesTags: ["Notifications"],
     }),
-    
-    // Pot reward connection
+
     getPotReward: build.mutation({
       query: (data) => ({
         url: "rewards/pot-reward",
@@ -224,7 +206,6 @@ export const api = createApi({
       invalidatesTags: ["Rewards", "User"],
     }),
 
-    // User-to-user money transfer
     transferMoney: build.mutation({
       query: (transferData) => ({
         url: "user/transfer",
@@ -233,84 +214,95 @@ export const api = createApi({
       }),
       invalidatesTags: ["User", "Transactions"],
     }),
-    
-    // Get user transactions
+
     getUserTransactions: build.query({
       query: () => "user/transactions",
       providesTags: ["Transactions"],
     }),
-    
-    // Get all users (for transfer functionality) - rename this to avoid conflict
+
     getAllBankUsers: build.query({
       query: () => "user/all-users",
       providesTags: ["User"],
     }),
 
-    // New Admin endpoints
     adminLogin: build.mutation({
       query: (credentials) => {
         console.log('Admin login attempt with:', credentials);
         return {
-          url: 'admin/login',
+          url: '/user/admin/login',
           method: 'POST',
           body: credentials,
         };
       },
-      transformResponse: (response) => {
-        console.log('Admin Login Success Response:', response);
-        return response;
-      },
-      transformErrorResponse: (error) => {
-        console.error('Admin Login Error:', error);
-        return error;
+      onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          console.log('Admin Login Success Response:', data);
+
+          if (data && data.token) {
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('isAdmin', 'true');
+            if (data.admin) {
+              localStorage.setItem('adminUser', JSON.stringify(data.admin));
+            }
+          }
+        } catch (error) {
+          console.error('Admin Login Error in onQueryStarted:', error);
+        }
       },
     }),
-    
+
     getAllUsers: build.query({
       query: () => "admin/users",
-      providesTags: ["AdminData"],
+      providesTags: ["AdminData", "Users"],
     }),
-    
+
     getUserDetails: build.query({
       query: (userId) => `admin/users/${userId}`,
-      providesTags: (result, error, userId) => [{ type: "AdminData", id: userId }],
+      providesTags: (result, error, id) => [
+        { type: "AdminData", id },
+        { type: "User", id }
+      ],
     }),
-    
+
     getSystemStats: build.query({
       query: () => "admin/stats",
-      providesTags: ["AdminData"],
+      providesTags: ["AdminData", "SystemStats"],
     }),
-    
+
     getTransactionsStats: build.query({
       query: () => "admin/transactions-stats",
-      providesTags: ["AdminData"],
+      providesTags: ["AdminData", "TransactionStats"],
     }),
-    
+
     getActiveUsers: build.query({
-      query: () => "admin/active-users",
-      providesTags: ["AdminData"],
+      query: () => '/user/admin/active-users',
+      providesTags: ['ActiveUsers'],
     }),
-    
+
     getFlaggedTransactions: build.query({
       query: () => "admin/flagged-transactions",
-      providesTags: ["AdminData"],
+      providesTags: ["AdminData", "FlaggedTransactions"],
     }),
-    
+
     getPotStatistics: build.query({
       query: () => "admin/pot-statistics",
-      providesTags: ["AdminData"],
+      providesTags: ["AdminData", "PotStats"],
     }),
-    
-    // Admin actions
+
     toggleUserStatus: build.mutation({
       query: ({ userId, status }) => ({
         url: `admin/users/${userId}/status`,
         method: "PUT",
         body: { status },
       }),
-      invalidatesTags: ["AdminData"],
+      invalidatesTags: (result, error, arg) => [
+        "AdminData",
+        "Users",
+        { type: "User", id: arg.userId }
+      ],
     }),
-    
+
     addSystemAlert: build.mutation({
       query: (alertData) => ({
         url: "admin/alerts",
@@ -319,11 +311,122 @@ export const api = createApi({
       }),
       invalidatesTags: ["AdminData"],
     }),
+
+    getDetailedTransactions: build.query({
+      query: () => "transaction/detailed-transactions",
+      providesTags: ["Transactions"],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          console.log('Starting detailed transactions query');
+          const token = localStorage.getItem('token');
+          if (!token) {
+            console.error('No authentication token found');
+          }
+          await queryFulfilled;
+        } catch (error) {
+          console.error('Query failed:', error);
+        }
+      },
+      transformResponse: (response) => {
+        console.log('Detailed Transactions Raw Response:', response);
+
+        if (!response || !Array.isArray(response) || response.length === 0) {
+          console.log('No transactions found');
+          return {
+            transactions: [],
+            incomeByMonth: {},
+            expensesByMonth: {},
+            categoriesByAmount: {},
+            totalIncome: 0,
+            totalExpenses: 0,
+            recentTransactions: [],
+            incomeByMonthArray: [],
+            expensesByMonthArray: [],
+            categoriesArray: [],
+          };
+        }
+
+        const processedData = {
+          transactions: response,
+          incomeByMonth: {},
+          expensesByMonth: {},
+          categoriesByAmount: {},
+          totalIncome: 0,
+          totalExpenses: 0,
+          recentTransactions: [],
+        };
+
+        const userId = localStorage.getItem('userId');
+        console.log('Processing transactions for userId:', userId);
+
+        const monthTotals = {};
+
+        response.forEach(transaction => {
+          try {
+            const date = new Date(transaction.date);
+            const month = date.toLocaleString('default', { month: 'short' });
+            const year = date.getFullYear();
+            const monthYear = `${month} ${year}`;
+
+            if (!monthTotals[monthYear]) {
+              monthTotals[monthYear] = { income: 0, expense: 0 };
+            }
+
+            const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
+            const senderId = String(transaction.senderId?.$oid || transaction.senderId);
+
+            const isIncome = receiverId === userId;
+            const isExpense = senderId === userId;
+
+            const amount = transaction.amount;
+            let category = 'other';
+
+            if (transaction.note && typeof transaction.note === 'string') {
+              category = transaction.note.toLowerCase().trim();
+              if (category.includes(' ')) {
+                category = category.split(' ')[0];
+              }
+            }
+
+            if (isIncome) {
+              processedData.totalIncome += amount;
+              processedData.incomeByMonth[monthYear] = (processedData.incomeByMonth[monthYear] || 0) + amount;
+              monthTotals[monthYear].income += amount;
+            }
+
+            if (isExpense) {
+              processedData.totalExpenses += amount;
+              processedData.expensesByMonth[monthYear] = (processedData.expensesByMonth[monthYear] || 0) + amount;
+              monthTotals[monthYear].expense += amount;
+              processedData.categoriesByAmount[category] = (processedData.categoriesByAmount[category] || 0) + amount;
+            }
+
+            processedData.recentTransactions.push(transaction);
+          } catch (e) {
+            console.error('Error processing transaction:', transaction, e);
+          }
+        });
+
+        processedData.incomeByMonthArray = Object.entries(processedData.incomeByMonth).map(([month, value]) => ({
+          month,
+          value,
+        }));
+        processedData.expensesByMonthArray = Object.entries(processedData.expensesByMonth).map(([month, value]) => ({
+          month,
+          value,
+        }));
+        processedData.categoriesArray = Object.entries(processedData.categoriesByAmount).map(([category, value]) => ({
+          category,
+          value,
+        }));
+
+        return processedData;
+      }
+    }),
   }),
 });
 
 export const {
-  useGetKpisQuery,
   useGetProductsQuery,
   useGetTransactionsQuery,
   useGetPotsQuery,
@@ -337,7 +440,7 @@ export const {
   useExtractPANDetailsMutation,
   useLoginUserMutation,
   useGetLinkedAccountsMutation,
-  useGetUserProfileQuery, // Export the new hook
+  useGetUserProfileQuery,
   useGetUserRewardsQuery,
   useUpdateLoginStreakMutation,
   useRevealScratchCardMutation,
@@ -345,13 +448,9 @@ export const {
   useGetNotificationsQuery,
   useMarkNotificationsReadMutation,
   useGetPotRewardMutation,
-  
-  // Export the transfer hooks
   useTransferMoneyMutation,
   useGetUserTransactionsQuery,
   useGetAllBankUsersQuery,
-  
-  // Export the admin hooks
   useAdminLoginMutation,
   useGetAllUsersQuery,
   useGetUserDetailsQuery,
@@ -362,4 +461,5 @@ export const {
   useGetPotStatisticsQuery,
   useToggleUserStatusMutation,
   useAddSystemAlertMutation,
+  useGetDetailedTransactionsQuery
 } = api;

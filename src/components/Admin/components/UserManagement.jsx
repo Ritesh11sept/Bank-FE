@@ -26,7 +26,9 @@ import {
   Tab,
   Alert,
   useTheme,
-  alpha
+  alpha,
+  CircularProgress,
+  Skeleton
 } from '@mui/material';
 import {
   Search,
@@ -37,11 +39,12 @@ import {
   Trash,
   MoreVertical,
   RefreshCw,
-  UserCheck
+  UserCheck,
+  AlertCircle
 } from 'lucide-react';
-import { useGetUserDetailsQuery, useToggleUserStatusMutation } from '../../state/api';
+import { useGetUserDetailsQuery, useToggleUserStatusMutation } from '../../../state/api';
 
-const UserManagement = ({ usersData = [] }) => {
+const UserManagement = ({ usersData = [], isLoading = false, error = null }) => {
   const theme = useTheme();
   const emerald = {
     main: '#10b981',
@@ -56,15 +59,24 @@ const UserManagement = ({ usersData = [] }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetailOpen, setUserDetailOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const { data: userDetails, isLoading: loadingDetails } = useGetUserDetailsQuery(
+  const { 
+    data: userDetails, 
+    isLoading: loadingDetails,
+    error: detailsError
+  } = useGetUserDetailsQuery(
     selectedUser?.id,
     { skip: !selectedUser }
   );
 
   const [toggleUserStatus, { isLoading: isToggling }] = useToggleUserStatusMutation();
 
-  const users = usersData.length > 0 ? usersData : [
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const users = usersData && usersData.length > 0 ? usersData : [
     { id: 1, name: 'John Doe', email: 'john@example.com', status: 'active', type: 'standard', joinDate: '2023-01-15', lastLogin: '2023-06-10' },
     { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'active', type: 'premium', joinDate: '2023-02-20', lastLogin: '2023-06-12' },
     { id: 3, name: 'Robert Johnson', email: 'robert@example.com', status: 'inactive', type: 'standard', joinDate: '2023-03-05', lastLogin: '2023-05-28' },
@@ -92,8 +104,8 @@ const UserManagement = ({ usersData = [] }) => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
       
     const matchesTab = 
       (selectedTab === 0) || 
@@ -114,6 +126,7 @@ const UserManagement = ({ usersData = [] }) => {
       await toggleUserStatus({ userId, status: newStatus }).unwrap();
       setUserDetailOpen(false);
       setSelectedUser(null);
+      handleRefresh();
     } catch (error) {
       console.error('Failed to update user status:', error);
     }
@@ -143,6 +156,21 @@ const UserManagement = ({ usersData = [] }) => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Paper 
@@ -164,6 +192,8 @@ const UserManagement = ({ usersData = [] }) => {
             variant="outlined" 
             startIcon={<RefreshCw size={18} />}
             size="small"
+            onClick={handleRefresh}
+            disabled={isLoading}
             sx={{ 
               borderColor: emerald.main, 
               color: emerald.main,
@@ -176,9 +206,27 @@ const UserManagement = ({ usersData = [] }) => {
               textTransform: 'none'
             }}
           >
-            Refresh
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </Box>
+        
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small"
+                onClick={handleRefresh}
+              >
+                Retry
+              </Button>
+            }
+          >
+            Failed to load users: {error.message || 'Unknown error'}
+          </Alert>
+        )}
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <TextField
@@ -261,82 +309,114 @@ const UserManagement = ({ usersData = [] }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredUsers
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((user) => (
-                  <TableRow
-                    key={user.id}
-                    sx={{ 
-                      '&:last-child td, &:last-child th': { border: 0 },
-                      '&:hover': { bgcolor: alpha(emerald.light, 0.03) },
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
-                      {user.name}
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={user.status.charAt(0).toUpperCase() + user.status.slice(1)} 
-                        size="small"
-                        sx={{ 
-                          bgcolor: alpha(getStatusColor(user.status), 0.1), 
-                          color: getStatusColor(user.status),
-                          fontWeight: 500,
-                          border: 'none'
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={user.type.charAt(0).toUpperCase() + user.type.slice(1)} 
-                        variant="outlined"
-                        size="small"
-                        sx={{ 
-                          borderColor: getUserTypeColor(user.type),
-                          color: getUserTypeColor(user.type),
-                          fontSize: '0.75rem'
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>{user.joinDate}</TableCell>
-                    <TableCell>{user.lastLogin}</TableCell>
+              {isLoading ? (
+                Array.from(new Array(5)).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><Skeleton variant="text" width={150} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={200} /></TableCell>
+                    <TableCell><Skeleton variant="rounded" width={80} height={24} /></TableCell>
+                    <TableCell><Skeleton variant="rounded" width={80} height={24} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={100} /></TableCell>
+                    <TableCell><Skeleton variant="text" width={100} /></TableCell>
                     <TableCell align="center">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => openUserDetail(user)} 
-                        sx={{ 
-                          color: emerald.main,
-                          '&:hover': { bgcolor: alpha(emerald.light, 0.1) },
-                          mx: 0.5
-                        }}
-                      >
-                        <Eye size={16} />
-                      </IconButton>
-                      <IconButton 
-                        size="small"
-                        sx={{ 
-                          color: '#3b82f6',
-                          '&:hover': { bgcolor: alpha('#3b82f6', 0.1) },
-                          mx: 0.5
-                        }}
-                      >
-                        <Edit size={16} />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        sx={{ 
-                          color: '#ef4444',
-                          '&:hover': { bgcolor: alpha('#ef4444', 0.1) },
-                          mx: 0.5
-                        }}
-                      >
-                        <Ban size={16} />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+              ) : filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                      <AlertCircle size={28} color={theme.palette.text.secondary} />
+                      <Typography color="text.secondary">
+                        {searchTerm ? 'No users match your search criteria' : 'No users found'}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((user) => (
+                    <TableRow
+                      key={user.id}
+                      sx={{ 
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        '&:hover': { bgcolor: alpha(emerald.light, 0.03) },
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
+                        {user.name}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={user.status ? (user.status.charAt(0).toUpperCase() + user.status.slice(1)) : 'Unknown'} 
+                          size="small"
+                          sx={{ 
+                            bgcolor: alpha(getStatusColor(user.status), 0.1), 
+                            color: getStatusColor(user.status),
+                            fontWeight: 500,
+                            border: 'none'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={user.type ? (user.type.charAt(0).toUpperCase() + user.type.slice(1)) : 'Standard'} 
+                          variant="outlined"
+                          size="small"
+                          sx={{ 
+                            borderColor: getUserTypeColor(user.type),
+                            color: getUserTypeColor(user.type),
+                            fontSize: '0.75rem'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{formatDate(user.joinDate || user.createdAt)}</TableCell>
+                      <TableCell>{formatDate(user.lastLogin)}</TableCell>
+                      <TableCell align="center">
+                        <IconButton 
+                          size="small" 
+                          onClick={() => openUserDetail(user)} 
+                          sx={{ 
+                            color: emerald.main,
+                            '&:hover': { bgcolor: alpha(emerald.light, 0.1) },
+                            mx: 0.5
+                          }}
+                        >
+                          <Eye size={16} />
+                        </IconButton>
+                        <IconButton 
+                          size="small"
+                          sx={{ 
+                            color: '#3b82f6',
+                            '&:hover': { bgcolor: alpha('#3b82f6', 0.1) },
+                            mx: 0.5
+                          }}
+                        >
+                          <Edit size={16} />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleStatusChange(user.id, user.status === 'active' ? 'suspended' : 'active')}
+                          sx={{ 
+                            color: user.status === 'active' ? '#ef4444' : emerald.main,
+                            '&:hover': { bgcolor: alpha(user.status === 'active' ? '#ef4444' : emerald.main, 0.1) },
+                            mx: 0.5
+                          }}
+                        >
+                          <Ban size={16} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -382,14 +462,31 @@ const UserManagement = ({ usersData = [] }) => {
             <DialogContent dividers>
               {loadingDetails ? (
                 <Box sx={{ textAlign: 'center', py: 3 }}>
+                  <CircularProgress size={40} sx={{ color: emerald.main, mb: 2 }} />
                   <Typography>Loading user details...</Typography>
                 </Box>
+              ) : detailsError ? (
+                <Alert 
+                  severity="error" 
+                  sx={{ mb: 3 }}
+                  action={
+                    <Button 
+                      color="inherit" 
+                      size="small"
+                      onClick={() => openUserDetail(selectedUser)}
+                    >
+                      Retry
+                    </Button>
+                  }
+                >
+                  Failed to load user details: {detailsError.message || 'Unknown error'}
+                </Alert>
               ) : (
                 <Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>Basic Information</Typography>
                     <Chip 
-                      label={selectedUser.status.charAt(0).toUpperCase() + selectedUser.status.slice(1)} 
+                      label={selectedUser.status ? (selectedUser.status.charAt(0).toUpperCase() + selectedUser.status.slice(1)) : 'Unknown'} 
                       sx={{ 
                         bgcolor: alpha(getStatusColor(selectedUser.status), 0.1), 
                         color: getStatusColor(selectedUser.status),
@@ -411,22 +508,45 @@ const UserManagement = ({ usersData = [] }) => {
                   >
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">Full Name</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>{selectedUser.name}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {selectedUser.name || 'N/A'}
+                      </Typography>
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">Email Address</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>{selectedUser.email}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {selectedUser.email || 'N/A'}
+                      </Typography>
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">Account Type</Typography>
                       <Typography variant="body1" sx={{ fontWeight: 500, color: getUserTypeColor(selectedUser.type) }}>
-                        {selectedUser.type.charAt(0).toUpperCase() + selectedUser.type.slice(1)}
+                        {selectedUser.type ? (selectedUser.type.charAt(0).toUpperCase() + selectedUser.type.slice(1)) : 'Standard'}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">Member Since</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>{selectedUser.joinDate}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {formatDate(selectedUser.joinDate || selectedUser.createdAt)}
+                      </Typography>
                     </Box>
+                    
+                    {userDetails && (
+                      <>
+                        <Box>
+                          <Typography variant="subtitle2" color="text.secondary">Phone Number</Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {userDetails.phoneNumber || 'Not provided'}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle2" color="text.secondary">Address</Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                            {userDetails.address || 'Not provided'}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
                   </Box>
                   
                   <Divider sx={{ my: 3 }} />
@@ -448,7 +568,9 @@ const UserManagement = ({ usersData = [] }) => {
                         }
                       }}
                     >
-                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>15</Typography>
+                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>
+                        {userDetails?.transactionCount || '0'}
+                      </Typography>
                       <Typography variant="body2" color="text.secondary">Transactions</Typography>
                     </Paper>
                     <Paper 
@@ -465,7 +587,9 @@ const UserManagement = ({ usersData = [] }) => {
                         }
                       }}
                     >
-                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>3</Typography>
+                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>
+                        {userDetails?.potCount || '0'}
+                      </Typography>
                       <Typography variant="body2" color="text.secondary">Savings Pots</Typography>
                     </Paper>
                     <Paper 
@@ -482,7 +606,9 @@ const UserManagement = ({ usersData = [] }) => {
                         }
                       }}
                     >
-                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>72</Typography>
+                      <Typography variant="h4" sx={{ color: emerald.main, fontWeight: 600 }}>
+                        {userDetails?.wellnessScore || 'N/A'}
+                      </Typography>
                       <Typography variant="body2" color="text.secondary">Wellness Score</Typography>
                     </Paper>
                   </Box>
@@ -529,7 +655,7 @@ const UserManagement = ({ usersData = [] }) => {
                         fontWeight: 500,
                       }}
                     >
-                      Suspend Account
+                      {isToggling ? <CircularProgress size={20} /> : 'Suspend Account'}
                     </Button>
                     <Button
                       variant="outlined"
