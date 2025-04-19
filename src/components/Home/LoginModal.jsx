@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, ArrowRight, X, CheckCircle, Shield } from 'lucide-react';
-import { useLoginUserMutation, useAdminLoginMutation } from '../../state/api';
+import { useLoginUserMutation } from '../../state/api';
+import { useAdminLoginMutation } from '../../state/adminApi';
 
 const LoginModal = ({ open, onClose, onRegister }) => {
   const [pan, setPan] = useState('');
@@ -54,54 +55,32 @@ const LoginModal = ({ open, onClose, onRegister }) => {
       if (isAdminMode) {
         console.log('Attempting admin login with:', { username: pan, password });
 
-        try {
-          const response = await adminLogin({
-            username: pan,
-            password,
-          }).unwrap();
+        const result = await adminLogin({
+          username: pan,
+          password,
+        }).unwrap();
 
-          console.log('Admin login successful:', response);
+        console.log('Admin login response:', result);
 
-          if (response && response.token) {
-            if (!localStorage.getItem('adminToken')) {
-              localStorage.setItem('adminToken', response.token);
-              localStorage.setItem('isAdmin', 'true');
-              if (response.admin) {
-                localStorage.setItem('adminUser', JSON.stringify(response.admin));
-              }
-            }
+        // Check if we have a valid response
+        if (result && (result.token || (result.data && result.data.token))) {
+          const token = result.token || result.data.token;
+          const user = result.user || result.data.user;
 
-            setLoginSuccess(true);
-            setTimeout(() => {
-              onClose();
-              window.location.href = '/admin/dashboard';
-            }, 1500);
-          } else {
-            throw new Error('No token received from server');
-          }
-        } catch (adminError) {
-          console.error('Admin login failed with error:', adminError);
+          // Store admin data
+          localStorage.setItem('adminToken', token);
+          localStorage.setItem('isAdmin', 'true');
+          localStorage.setItem('adminUser', JSON.stringify(user));
 
-          if (pan === 'admin' && password === 'admin123') {
-            console.log('Using development admin login fallback');
+          setLoginSuccess(true);
 
-            const mockToken = 'dev-admin-token-' + Date.now();
-            localStorage.setItem('adminToken', mockToken);
-            localStorage.setItem('isAdmin', 'true');
-            localStorage.setItem('adminUser', JSON.stringify({
-              id: 'admin-1',
-              username: 'admin',
-              role: 'admin',
-            }));
-
-            setLoginSuccess(true);
-            setTimeout(() => {
-              onClose();
-              window.location.href = '/admin/dashboard';
-            }, 1500);
-          } else {
-            throw adminError;
-          }
+          // Use a slightly longer delay to ensure storage is complete
+          setTimeout(() => {
+            onClose();
+            navigate('/admin/dashboard', { replace: true });
+          }, 1500);
+        } else {
+          throw new Error('Invalid admin credentials');
         }
       } else {
         console.log('Attempting user login with PAN:', pan);
@@ -122,17 +101,8 @@ const LoginModal = ({ open, onClose, onRegister }) => {
         }, 1500);
       }
     } catch (err) {
-      console.error('Login error details:', err);
-
-      let errorMessage = `Failed to login. ${isAdminMode ? 'Admin credentials' : 'User credentials'} may be incorrect.`;
-
-      if (err.status === 404) {
-        errorMessage = 'Service endpoint not found. Please check server configuration.';
-      } else if (err.data?.message) {
-        errorMessage = err.data.message;
-      }
-
-      setError(errorMessage);
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
     }
   };
 

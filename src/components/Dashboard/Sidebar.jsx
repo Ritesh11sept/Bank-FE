@@ -57,7 +57,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
             <span className="text-white font-bold">F</span>
           </div>
-          <span className="text-lg font-semibold text-gray-800">Finance App</span>
+          <span className="text-lg font-semibold text-gray-800">Financeseer</span>
         </div>
         <button 
           className="lg:hidden text-gray-500 hover:text-gray-800 transition-colors"
