@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Loader } from 'lucide-react';
+import { useTranslation } from '../../context/TranslationContext';
 
 const OTPVerification = ({ phone, onVerify, loading }) => {
+  const { translations } = useTranslation();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
@@ -41,7 +43,7 @@ const OTPVerification = ({ phone, onVerify, loading }) => {
   const handleSubmit = () => {
     const otpString = otp.join('');
     if (otpString.length !== 6) {
-      setError('Please enter the complete OTP');
+      setError(translations.otp.completeOtpError);
       return;
     }
     onVerify();
@@ -53,7 +55,7 @@ const OTPVerification = ({ phone, onVerify, loading }) => {
     setOtp(['', '', '', '', '', '']);
     setError('');
     // Show success message
-    alert('OTP resent successfully! Use 000000 for demo.');
+    alert(translations.otp.resendSuccess);
   };
 
   return (
@@ -63,9 +65,9 @@ const OTPVerification = ({ phone, onVerify, loading }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <h3 className="text-2xl font-bold text-white mb-4">Enter OTP</h3>
+      <h3 className="text-2xl font-bold text-white mb-4">{translations.otp.title}</h3>
       <p className="text-gray-400 mb-6">
-        We've sent a verification code to<br />
+        {translations.otp.sentMessage}<br />
         <span className="text-emerald-400">+91 {phone}</span>
       </p>
 
@@ -99,25 +101,27 @@ const OTPVerification = ({ phone, onVerify, loading }) => {
         {loading ? (
           <Loader className="w-5 h-5 animate-spin mr-2" />
         ) : null}
-        {loading ? 'Verifying...' : 'Verify OTP'}
+        {loading ? translations.otp.verifying : translations.otp.verifyButton}
       </motion.button>
 
       <p className="mt-6 text-gray-400 text-sm">
-        Didn't receive the code?{' '}
+        {translations.otp.didntReceive}{' '}
         {resendTimer > 0 ? (
-          <span>Resend in {resendTimer}s</span>
+          <span>{translations.otp.resendIn} {resendTimer}{translations.otp.seconds}</span>
         ) : (
           <button
             onClick={handleResend}
             className="text-emerald-400 hover:text-emerald-300 transition-colors"
           >
-            Resend OTP
+            {translations.otp.resendOtp}
           </button>
         )}
       </p>
       
       <p className="mt-4 text-gray-500 text-xs">
-        Use <span className="text-white font-medium">000000</span> for demo
+        {translations.otp.demoMessage}{' '}
+        <span className="text-white font-medium">{translations.otp.demoCode}</span>{' '}
+        {translations.otp.forDemo}
       </p>
     </motion.div>
   );

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { motion } from "framer-motion";
 import BoxHeader from "./BoxHeader";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -22,22 +23,21 @@ const Row1 = ({ data }) => {
   const [processedData, setProcessedData] = useState(null);
   const { data: userTransactions, isLoading } = useGetUserTransactionsQuery();
   const userId = localStorage.getItem('userId');
+  
+  // Get translations
+  const { translations, language } = useContext(TranslationContext2) || { translations: {}, language: 'english' };
+  const t = translations.analytics?.[language] || translations.analytics?.english || {};
 
   // Process transactions to get financial data
   useEffect(() => {
     if (userTransactions) {
-      // Check the structure of userTransactions and extract the transactions array
       const transactions = Array.isArray(userTransactions) 
         ? userTransactions 
         : userTransactions.transactions || [];
       
-      console.log('Processing transactions:', transactions);
-      
       if (Array.isArray(transactions)) {
         processTransactions(transactions);
       } else {
-        console.error('Transactions is not an array:', transactions);
-        // Create an empty data structure with defaults
         setProcessedData({
           transactions: [],
           incomeByMonth: {},
@@ -54,14 +54,12 @@ const Row1 = ({ data }) => {
   }, [userTransactions]);
 
   const processTransactions = (transactions) => {
-    // Initialize data structures
     const incomeByMonth = {};
     const expensesByMonth = {};
     const categoriesByAmount = {};
     let totalIncome = 0;
     let totalExpenses = 0;
 
-    // Process each transaction
     transactions.forEach(transaction => {
       try {
         const date = new Date(transaction.date);
@@ -69,17 +67,14 @@ const Row1 = ({ data }) => {
         const year = date.getFullYear();
         const monthYear = `${month} ${year}`;
 
-        // Handle different ID formats and ensure they're strings for comparison
         const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
         const senderId = String(transaction.senderId?.$oid || transaction.senderId);
 
-        // Use strict equality to determine transaction type
         const isIncome = receiverId === userId;
         const isExpense = senderId === userId;
 
         const amount = transaction.amount;
 
-        // Get category from note
         let category = 'other';
         if (transaction.note && typeof transaction.note === 'string') {
           category = transaction.note.toLowerCase().trim();
@@ -88,7 +83,6 @@ const Row1 = ({ data }) => {
           }
         }
 
-        // Update monthly data
         if (isIncome) {
           totalIncome += amount;
           incomeByMonth[monthYear] = (incomeByMonth[monthYear] || 0) + amount;
@@ -98,7 +92,6 @@ const Row1 = ({ data }) => {
           totalExpenses += amount;
           expensesByMonth[monthYear] = (expensesByMonth[monthYear] || 0) + amount;
 
-          // Track expense categories for visualization
           if (!categoriesByAmount[category]) {
             categoriesByAmount[category] = 0;
           }
@@ -109,7 +102,6 @@ const Row1 = ({ data }) => {
       }
     });
 
-    // Convert to arrays for charts
     const incomeByMonthArray = Object.entries(incomeByMonth)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => {
@@ -134,7 +126,6 @@ const Row1 = ({ data }) => {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
       
-    // Prepare the final processed data
     const finalData = {
       transactions,
       incomeByMonth,
@@ -150,12 +141,11 @@ const Row1 = ({ data }) => {
     setProcessedData(finalData);
   };
 
-  // If still loading or data is being processed
   if (isLoading || (!processedData && !data)) {
     return (
       <>
         <div className="bg-white rounded-lg shadow-lg p-4 flex flex-col h-full" style={{ gridArea: "a" }}>
-          <BoxHeader title="Loading data..." />
+          <BoxHeader title={t.loadingData} />
           <div className="flex-1 items-center justify-center flex">
             <div className="animate-pulse w-full h-64 bg-gray-200 rounded"></div>
           </div>
@@ -164,20 +154,16 @@ const Row1 = ({ data }) => {
     );
   }
 
-  // Use processedData if available, otherwise fall back to the provided data
   const displayData = processedData || data;
   if (!displayData) return null;
 
-  // Combine income and expenses for monthly comparison
   const monthlyComparisonData = [];
   
-  // Get unique set of all months from both income and expenses
   const months = new Set([
     ...Object.keys(displayData.incomeByMonth || {}),
     ...Object.keys(displayData.expensesByMonth || {})
   ]);
   
-  // Sort months chronologically
   const sortedMonths = Array.from(months).sort((a, b) => {
     const [monthA, yearA] = a.split(' ');
     const [monthB, yearB] = b.split(' ');
@@ -186,7 +172,6 @@ const Row1 = ({ data }) => {
     return dateA - dateB;
   });
 
-  // Ensure we have at least 6 months for visualization
   if (sortedMonths.length < 6) {
     const today = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -209,7 +194,6 @@ const Row1 = ({ data }) => {
     });
   }
   
-  // Create data points for each month
   sortedMonths.forEach(month => {
     const income = (displayData.incomeByMonth || {})[month] || 0;
     const expenses = (displayData.expensesByMonth || {})[month] || 0;
@@ -222,20 +206,16 @@ const Row1 = ({ data }) => {
     });
   });
 
-  // Last 6 months data for visualization
   const recentMonthlyData = monthlyComparisonData.slice(-6);
   
-  // Category data for pie chart
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A267AC', '#6C5B7B', '#3498DB', '#1ABC9C'];
   const categoryData = displayData.categoriesArray || [];
   
-  // Format category names to be more readable
   const formattedCategoryData = categoryData.map(category => ({
     ...category,
     name: category.name.charAt(0).toUpperCase() + category.name.slice(1)
   }));
 
-  // Custom formatter for INR
   const formatINR = (value) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -254,8 +234,8 @@ const Row1 = ({ data }) => {
         style={{ gridArea: "a" }}
       >
         <BoxHeader
-          title="Monthly Income vs Expenses"
-          subtitle={`Income: ${formatINR(displayData.totalIncome)} | Expenses: ${formatINR(displayData.totalExpenses)}`}
+          title={t.monthlyIncomeVsExpenses}
+          subtitle={`${t.income}: ${formatINR(displayData.totalIncome)} | ${t.expenses}: ${formatINR(displayData.totalExpenses)}`}
           sideText={formatINR(displayData.totalIncome - displayData.totalExpenses)}
         />
         <div className="flex-1 w-full min-h-0">
@@ -302,8 +282,8 @@ const Row1 = ({ data }) => {
                   fontSize: "12px"
                 }}
                 formatter={(value) => {
-                  if (value === "Income") return "Money Received";
-                  if (value === "Expenses") return "Money Sent";
+                  if (value === "Income") return t.moneyReceived;
+                  if (value === "Expenses") return t.moneySent;
                   return value;
                 }}
               />
@@ -340,8 +320,8 @@ const Row1 = ({ data }) => {
         style={{ gridArea: "c" }}
       >
         <BoxHeader
-          title="Expense Categories"
-          subtitle="Distribution of expenses by category"
+          title={t.expenseCategories}
+          subtitle={t.distributionOfExpenses}
           sideText={formatINR(displayData.totalExpenses)}
         />
         <div className="flex-1 w-full min-h-0 flex flex-row justify-between items-center">
@@ -368,7 +348,7 @@ const Row1 = ({ data }) => {
             </ResponsiveContainer>
           </div>
           <div className="w-1/2 h-full overflow-y-auto pr-2">
-            <p className="text-lg font-semibold mb-3">Top Categories</p>
+            <p className="text-lg font-semibold mb-3">{t.topCategories}</p>
             {formattedCategoryData.slice(0, 6).map((category, index) => (
               <div key={index} className="mb-2 flex items-center justify-between">
                 <div className="flex items-center">
@@ -395,8 +375,8 @@ const Row1 = ({ data }) => {
         style={{ gridArea: "e" }}
       >
         <BoxHeader
-          title="Monthly Income"
-          subtitle="Monthly income visualization"
+          title={t.monthlyIncome}
+          subtitle={t.monthlyIncomeVisualization}
           sideText={formatINR(displayData.totalIncome)}
         />
         <div className="flex-1 w-full min-h-0">
@@ -431,7 +411,7 @@ const Row1 = ({ data }) => {
               />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [formatINR(value), "Income"]}
+                formatter={(value) => [formatINR(value), t.income]}
               />
               <Bar
                 dataKey="Income"

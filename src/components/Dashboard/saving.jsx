@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import DashboardLayout from "./DashboardLayout";
 import { Plus, Info, BarChart3, Calendar, Sparkles, Wallet, TrendingUp, X } from 'lucide-react';
 import { useGetPotsQuery, useDeletePotMutation } from "../../state/api";
@@ -10,6 +10,7 @@ import SetGoalDialog from '../Savings/SetGoalDialog';
 import PotGrid from '../Savings/PotGrid';
 import AIAssistant from '../Savings/AIAssistant';
 import axios from '../../utils/axios';
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const StatCard = ({ icon, label, value, color }) => {
   const bgColor = `bg-${color}-50`;
@@ -32,6 +33,20 @@ const StatCard = ({ icon, label, value, color }) => {
 };
 
 const Savings = () => {
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      savings: {
+        title: "Savings Pots",
+        subtitle: "Save for your goals and earn 2.5% interest annually",
+        // ...fallback translations if needed
+      }
+    } 
+  };
+  
+  const { savings: t } = translations;
+
   const { data: pots = [], isLoading, error: queryError } = useGetPotsQuery();
   const [deletePot] = useDeletePotMutation();
 
@@ -135,11 +150,11 @@ const Savings = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-              Savings Pots
+              {t.title}
             </h1>
             <p className="text-gray-600 flex items-center gap-2 text-sm">
               <Info size={16} />
-              Save for your goals and earn 2.5% interest annually
+              {t.subtitle}
             </p>
           </div>
 
@@ -148,14 +163,14 @@ const Savings = () => {
               onClick={() => setIsAboutDialogOpen(true)}
               className="px-5 py-2 text-sm font-semibold rounded-xl border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors"
             >
-              About Pots
+              {t.aboutPots}
             </button>
             <button
               onClick={() => setIsCreateDialogOpen(true)}
               className="px-5 py-2 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200 shadow-sm hover:shadow-md transition-all flex items-center gap-2"
             >
               <Plus size={18} />
-              Create New Pot
+              {t.createNew}
             </button>
           </div>
         </div>
@@ -176,23 +191,23 @@ const Savings = () => {
               
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Smart Savings with AI Assistance
+                  {t.guide.title}
                 </h3>
                 <p className="text-gray-600 mb-3">
-                  Create savings pots for different goals and get personalized AI tips to help you reach them faster.
+                  {t.guide.description}
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2 text-sm text-gray-600">
                     <div className="p-1 bg-emerald-100 rounded-full text-emerald-600 mt-0.5">•</div>
-                    <span>Create different pots for different goals</span>
+                    <span>{t.guide.bullet1}</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-gray-600">
                     <div className="p-1 bg-emerald-100 rounded-full text-emerald-600 mt-0.5">•</div>
-                    <span>Get AI-powered savings tips and gift recommendations</span>
+                    <span>{t.guide.bullet2}</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-gray-600">
                     <div className="p-1 bg-emerald-100 rounded-full text-emerald-600 mt-0.5">•</div>
-                    <span>Track your progress with visual indicators</span>
+                    <span>{t.guide.bullet3}</span>
                   </li>
                 </ul>
               </div>
@@ -203,25 +218,25 @@ const Savings = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard 
             icon={<Wallet />}
-            label="Total Savings"
+            label={t.totalSavings}
             value={`₹${totalSavings.toLocaleString()}`}
             color="emerald"
           />
           <StatCard 
             icon={<TrendingUp />}
-            label="Annual Interest"
+            label={t.annualInterest}
             value={`₹${annualInterest}`}
             color="blue"
           />
           <StatCard 
             icon={<BarChart3 />}
-            label="Active Goals"
-            value={`${totalGoals - completedGoals} of ${totalGoals}`}
+            label={t.activeGoals}
+            value={`${totalGoals - completedGoals} ${t.of} ${totalGoals}`}
             color="amber"
           />
           <StatCard 
             icon={<Calendar />}
-            label="Completed Goals"
+            label={t.completedGoals}
             value={completedGoals}
             color="purple"
           />
@@ -238,10 +253,10 @@ const Savings = () => {
         ) : queryError ? (
           <div className="p-8 text-center bg-white rounded-2xl shadow-sm">
             <p className="text-red-500 font-medium">
-              {typeof queryError === 'string' ? queryError : 'Failed to load your savings pots'}
+              {typeof queryError === 'string' ? queryError : t.failedToLoad}
             </p>
             <button className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm">
-              Try Again
+              {t.tryAgain}
             </button>
           </div>
         ) : (

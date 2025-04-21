@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiBell,
@@ -27,6 +27,56 @@ import {
   useMarkNotificationsReadMutation,
 } from "../../state/api";
 import NotificationPanel from "./NotificationPanel";
+import { useTranslation2, TranslationContext2 } from "../../context/TranslationContext2";
+
+// Fallback translations when context isn't available
+const fallbackTranslations = {
+  navbar: {
+    notifications: "Notifications",
+    messages: "Messages",
+    profile: "Profile",
+    signOut: "Sign Out",
+    primaryAccount: "Primary Account",
+    pan: "PAN:",
+    kyc: "KYC:",
+    verified: "Verified",
+    accountInformation: "Account Information",
+    switchAccount: "Switch Account",
+    currentAccount: "Current Account",
+    accountNumber: "Account Number",
+    ifscCode: "IFSC Code",
+    branch: "Branch",
+    panNumber: "PAN Number",
+    kycStatus: "KYC Status",
+    lastLogin: "Last Login",
+    viewActivity: "View Activity",
+    bankBalance: "Bank Balance",
+    manageAccounts: "Manage Accounts",
+    close: "Close",
+    newNotification: "New notification",
+    newNotifications: "New notifications",
+    viewAll: "View All",
+    dismiss: "Dismiss",
+  },
+  notificationPanel: {
+    noNotifications: "No notifications",
+    clearAll: "Clear all",
+    loading: "Loading notifications...",
+    unreadNotifications: "Unread notifications",
+    allNotifications: "All notifications",
+    markAllRead: "Mark all as read",
+    justNow: "Just now",
+    minutesAgo: "minutes ago",
+    hoursAgo: "hours ago",
+    daysAgo: "days ago",
+  },
+  language: {
+    en: "EN",
+    hi: "HI",
+    english: "English",
+    hindi: "Hindi",
+  },
+};
 
 const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -40,9 +90,23 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAccountSwitcher, setShowAccountSwitcher] = useState(false);
 
+  // Create a local translation state if context is not available
+  const [localLanguage, setLocalLanguage] = useState("english");
+
+  // Try to get translations from context, use fallback if not available
+  const translationContext = useContext(TranslationContext2);
+  const translationService = translationContext || {
+    translations: fallbackTranslations,
+    language: localLanguage,
+    changeLanguage: setLocalLanguage,
+  };
+
+  const { translations, language, changeLanguage } = translationService;
+  const { navbar, notificationPanel, language: langText } = translations;
+
   // Fetch user profile data
   const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
-  
+
   // Fix: Access profile data directly without the .user property
   // The API now returns the user data directly in the response
   const userData = profileData;
@@ -296,6 +360,26 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
             >
               <FiMenu size={22} />
             </button>
+
+            {/* Language toggle slider - Fixed to keep labels consistent */}
+            <div className="hidden sm:flex items-center ml-3">
+              <span className="mr-2 text-sm font-medium" style={{ color: language === "english" ? "#047857" : "#6B7280" }}>
+                EN
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  value=""
+                  className="sr-only peer"
+                  checked={language === "hindi"}
+                  onChange={() => changeLanguage(language === "english" ? "hindi" : "english")}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+              </label>
+              <span className="ml-2 text-sm font-medium" style={{ color: language === "hindi" ? "#047857" : "#6B7280" }}>
+                HI
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -329,7 +413,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
                           <FiBell className="text-emerald-600" size={15} />
                         </div>
                         <p className="font-medium text-sm">
-                          New notification{unreadCount > 1 ? "s" : ""}
+                          {unreadCount > 1 ? navbar.newNotifications : navbar.newNotification}
                         </p>
                         <button
                           onClick={(e) => {
@@ -363,7 +447,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
                           }}
                           className="text-xs flex-1 bg-emerald-100 text-emerald-700 py-1.5 rounded hover:bg-emerald-200 transition-colors"
                         >
-                          View All ({unreadCount})
+                          {navbar.viewAll} ({unreadCount})
                         </button>
                         <button
                           onClick={(e) => {
@@ -373,7 +457,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
                           }}
                           className="text-xs px-2 bg-gray-100 text-gray-600 py-1.5 rounded hover:bg-gray-200 transition-colors"
                         >
-                          Dismiss
+                          {navbar.dismiss}
                         </button>
                       </div>
                     </motion.div>
@@ -536,14 +620,14 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
               <div className="px-6 py-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-lg font-semibold text-gray-800">Account Information</h4>
+                  <h4 className="text-lg font-semibold text-gray-800">{navbar.accountInformation}</h4>
                   {accountsList.length > 1 && (
                     <div className="relative">
                       <button
                         onClick={() => setShowAccountSwitcher(!showAccountSwitcher)}
                         className="text-sm bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1"
                       >
-                        Switch Account
+                        {navbar.switchAccount}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className={`h-4 w-4 transition-transform ${
@@ -615,7 +699,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-gray-500">Current Account</span>
+                    <span className="text-sm text-gray-500">{navbar.currentAccount}</span>
                     <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full font-medium">
                       {accountInfo.accountType}
                     </span>
@@ -623,17 +707,17 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Account Number</span>
+                      <span className="text-sm text-gray-500">{navbar.accountNumber}</span>
                       <span className="text-sm font-medium">{accountInfo.accountNumber}</span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">IFSC Code</span>
+                      <span className="text-sm text-gray-500">{navbar.ifscCode}</span>
                       <span className="text-sm font-medium">{accountInfo.ifsc}</span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-500">Branch</span>
+                      <span className="text-sm text-gray-500">{navbar.branch}</span>
                       <span className="text-sm font-medium">{accountInfo.branch}</span>
                     </div>
                   </div>
@@ -641,12 +725,12 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
-                    <span className="text-xs text-gray-500 block mb-1">PAN Number</span>
+                    <span className="text-xs text-gray-500 block mb-1">{navbar.panNumber}</span>
                     <span className="text-sm font-medium">{accountInfo.panNumber}</span>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
-                    <span className="text-xs text-gray-500 block mb-1">KYC Status</span>
+                    <span className="text-xs text-gray-500 block mb-1">{navbar.kycStatus}</span>
                     <span className="text-sm font-medium text-emerald-600 flex items-center">
                       <FiShield size={14} className="mr-1" /> {accountInfo.kycStatus}
                     </span>
@@ -655,18 +739,18 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
 
                 <div className="mt-4 bg-blue-50 rounded-xl p-3 border border-blue-100 flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-blue-500 block">Last Login</span>
+                    <span className="text-xs text-blue-500 block">{navbar.lastLogin}</span>
                     <span className="text-sm font-medium">{accountInfo.lastLogin}</span>
                   </div>
                   <button className="text-xs bg-white text-blue-600 px-2 py-1 rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors duration-200">
-                    View Activity
+                    {navbar.viewActivity}
                   </button>
                 </div>
 
                 {userData?.bankBalance && (
                   <div className="mt-4 bg-green-50 rounded-xl p-3 border border-green-100 flex items-center justify-between">
                     <div>
-                      <span className="text-xs text-green-500 block">Bank Balance</span>
+                      <span className="text-xs text-green-500 block">{navbar.bankBalance}</span>
                       <span className="text-sm font-medium">₹{userData.bankBalance.toLocaleString()}</span>
                     </div>
                   </div>
@@ -678,7 +762,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
                     onClick={() => console.log("Manage accounts clicked")}
                   >
                     <FiCreditCard size={16} />
-                    Manage Accounts
+                    {navbar.manageAccounts}
                   </button>
                 </div>
               </div>
@@ -688,7 +772,7 @@ const Navbar = ({ toggleSidebar, setMobileOpen, toggleChatbot = () => {} }) => {
                   onClick={() => setShowAccountModal(false)}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-200 font-medium"
                 >
-                  Close
+                  {navbar.close}
                 </button>
               </div>
             </motion.div>

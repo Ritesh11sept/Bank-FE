@@ -1,73 +1,61 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { useTranslation } from '../../context/TranslationContext';
 
-const PricingCard = ({ title, description, price, features, isPopular }) => (
-  <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-3xl relative">
-    <h3 className="text-2xl font-semibold text-white mb-2">{title}</h3>
-    <p className="text-gray-400 text-sm mb-4">{description}</p>
-    
-    <div className="mb-6">
-      <span className="text-4xl font-bold text-white">₹{price}</span>
-      <span className="text-gray-400 text-sm ml-1">/per month</span>
+const PricingCard = ({ title, description, price, features, isPopular }) => {
+  const { translations } = useTranslation();
+  
+  return (
+    <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-3xl relative">
+      <h3 className="text-2xl font-semibold text-white mb-2">{title}</h3>
+      <p className="text-gray-400 text-sm mb-4">{description}</p>
+      
+      <div className="mb-6">
+        <span className="text-4xl font-bold text-white">₹{price}</span>
+        <span className="text-gray-400 text-sm ml-1">{translations.pricing.perMonth}</span>
+      </div>
+      
+      <div className="space-y-3 mb-8">
+        {features.map((feature, index) => (
+          <div key={index} className="flex items-center">
+            <Check className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
+            <span className="text-gray-300 text-sm">{feature}</span>
+          </div>
+        ))}
+      </div>
+      
+      <button className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors">
+        {translations.pricing.selectPlan}
+      </button>
     </div>
-    
-    <div className="space-y-3 mb-8">
-      {features.map((feature, index) => (
-        <div key={index} className="flex items-center">
-          <Check className="h-5 w-5 text-emerald-500 mr-2 flex-shrink-0" />
-          <span className="text-gray-300 text-sm">{feature}</span>
-        </div>
-      ))}
-    </div>
-    
-    <button className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors">
-      Select This Plan
-    </button>
-  </div>
-);
+  );
+};
 
 const PricingSection = () => {
+  const { translations } = useTranslation();
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   const plans = {
     starter: {
-      title: "Basic Insights",
-      description: "Perfect for individual users starting their financial journey",
+      title: translations.pricing.plans.basic.title,
+      description: translations.pricing.plans.basic.description,
       monthlyPrice: "0",
       yearlyPrice: "0",
-      features: [
-        "PAN-based Account Integration",
-        "Basic Spending Analytics",
-        "Transaction Monitoring",
-        "2 Saving Pots",
-        "Basic Market Updates"
-      ]
+      features: translations.pricing.plans.basic.features
     },
     growth: {
-      title: "Smart Saver",
-      description: "Ideal for users seeking advanced financial insights",
+      title: translations.pricing.plans.smart.title,
+      description: translations.pricing.plans.smart.description,
       monthlyPrice: "299",
       yearlyPrice: "2999",
-      features: [
-        "Everything in Basic Plan",
-        "Advanced Analytics Dashboard",
-        "Personalized Financial Advice",
-        "Unlimited Saving Pots",
-        "Premium Rewards Program"
-      ]
+      features: translations.pricing.plans.smart.features
     },
     business: {
-      title: "Wealth Manager",
-      description: "Complete financial management suite with premium features",
+      title: translations.pricing.plans.wealth.title,
+      description: translations.pricing.plans.wealth.description,
       monthlyPrice: "699",
       yearlyPrice: "6999",
-      features: [
-        "Everything in Smart Saver",
-        "AI-Powered Investment Tips",
-        "Priority Customer Support",
-        "Custom Financial Reports",
-        "Advanced Market Insights"
-      ]
+      features: translations.pricing.plans.wealth.features
     }
   };
 
@@ -76,13 +64,13 @@ const PricingSection = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <div className="inline-block bg-emerald-500/10 text-emerald-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
-            Pricing Plan
+            {translations.pricing.sectionTitle}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Select a plan that will empower your business growth
+            {translations.pricing.heading}
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Each package includes GST compliance tools and personalized support to ensure your success
+            {translations.pricing.subheading}
           </p>
         </div>
 
@@ -96,7 +84,7 @@ const PricingSection = () => {
               }`}
               onClick={() => setBillingCycle('monthly')}
             >
-              Monthly
+              {translations.pricing.monthly}
             </button>
             <button
               className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -106,7 +94,7 @@ const PricingSection = () => {
               }`}
               onClick={() => setBillingCycle('yearly')}
             >
-              Yearly
+              {translations.pricing.yearly}
             </button>
           </div>
         </div>

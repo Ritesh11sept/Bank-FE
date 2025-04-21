@@ -1,10 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiClock, FiArrowDown, FiArrowUp, FiChevronRight, FiFilter, FiCheckCircle } from "react-icons/fi";
 import { useGetUserTransactionsQuery, useGetUserProfileQuery } from "../../state/api";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 import TransactionModal from "./TransactionModal";
 
 const RecentTransactions = () => {
+  // Get translations from context
+  const { translations } = useContext(TranslationContext2) || {};
+  
+  // Access translations with fallback
+  const t = translations?.recentTransactions || {
+    title: "Recent Transactions",
+    subtitle: "'s last {0} transactions",
+    your: "Your",
+    all: "All",
+    incoming: "Incoming",
+    outgoing: "Outgoing",
+    from: "From: {0}",
+    to: "To: {0}",
+    unknown: "Unknown",
+    receivedPayment: "Received payment",
+    sentPayment: "Sent payment",
+    noTransactionsYet: "No transactions yet",
+    noTransactionsDescription: "Your transaction history will appear here after you make your first transfer",
+    viewAllTransactions: "View All Transactions"
+  };
+  
+  // Helper function to format translation strings with parameters
+  const formatTranslation = (template, ...args) => {
+    return template.replace(/{(\d+)}/g, (match, index) => {
+      return args[index] !== undefined ? args[index] : match;
+    });
+  };
+  
   const [filter, setFilter] = useState("all"); // all, incoming, outgoing
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const { data: transactionsData, isLoading, refetch } = useGetUserTransactionsQuery();
@@ -108,9 +137,9 @@ const RecentTransactions = () => {
       icon: isIncoming ? <FiArrowDown size={16} /> : <FiArrowUp size={16} />,
       iconBg: isIncoming ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600",
       party: isIncoming ? 
-        `From: ${transaction.senderName || 'Unknown'}` : 
-        `To: ${transaction.receiverName || 'Unknown'}`,
-      description: transaction.note || (isIncoming ? "Received payment" : "Sent payment")
+        formatTranslation(t.from, transaction.senderName || t.unknown) : 
+        formatTranslation(t.to, transaction.receiverName || t.unknown),
+      description: transaction.note || (isIncoming ? t.receivedPayment : t.sentPayment)
     };
   };
 
@@ -124,9 +153,10 @@ const RecentTransactions = () => {
       >
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-xl font-bold mb-1">Recent Transactions</h2>
+            <h2 className="text-xl font-bold mb-1">{t.title}</h2>
             <p className="text-gray-500 text-sm">
-              {userProfile?.name ? `${userProfile.name}'s` : 'Your'} last {visibleTransactions.length} transactions
+              {userProfile?.name ? `${userProfile.name}${formatTranslation(t.subtitle, visibleTransactions.length)}` : 
+                `${t.your}${formatTranslation(t.subtitle, visibleTransactions.length)}`}
             </p>
           </div>
           <div className="p-2 bg-purple-100 rounded-lg">
@@ -143,7 +173,7 @@ const RecentTransactions = () => {
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            All
+            {t.all}
           </button>
           <button
             onClick={() => setFilter("incoming")}
@@ -153,7 +183,7 @@ const RecentTransactions = () => {
                 : "bg-green-50 text-green-700 hover:bg-green-100"
             }`}
           >
-            <FiArrowDown className="mr-1" size={14} /> Incoming
+            <FiArrowDown className="mr-1" size={14} /> {t.incoming}
           </button>
           <button
             onClick={() => setFilter("outgoing")}
@@ -163,7 +193,7 @@ const RecentTransactions = () => {
                 : "bg-red-50 text-red-700 hover:bg-red-100"
             }`}
           >
-            <FiArrowUp className="mr-1" size={14} /> Outgoing
+            <FiArrowUp className="mr-1" size={14} /> {t.outgoing}
           </button>
         </div>
         
@@ -230,9 +260,9 @@ const RecentTransactions = () => {
             <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <FiClock className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-700 mb-1">No transactions yet</h3>
+            <h3 className="text-lg font-medium text-gray-700 mb-1">{t.noTransactionsYet}</h3>
             <p className="text-gray-500 text-sm">
-              Your transaction history will appear here after you make your first transfer
+              {t.noTransactionsDescription}
             </p>
           </div>
         )}
@@ -242,12 +272,12 @@ const RecentTransactions = () => {
             onClick={() => setShowAllTransactions(true)}
             className="text-sm text-blue-600 font-medium hover:text-blue-700 inline-flex items-center"
           >
-            View All Transactions <FiChevronRight className="ml-1" size={16} />
+            {t.viewAllTransactions} <FiChevronRight className="ml-1" size={16} />
           </button>
         </div>
       </motion.div>
 
-      {/* Render the Transaction Modal */}
+      {/* Pass translations to modal */}
       <AnimatePresence>
         {showAllTransactions && (
           <TransactionModal 
@@ -256,6 +286,7 @@ const RecentTransactions = () => {
             formatDate={formatDate}
             getTransactionDisplay={getTransactionDisplay}
             currentUserId={currentUserId}
+            translations={t}
           />
         )}
       </AnimatePresence>

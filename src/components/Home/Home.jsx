@@ -9,7 +9,9 @@ import AboutModal from './About';
 import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import Chatbot from '../../chatbot';
-import Header from './Header'; // Import the new Header component
+import Header from './Header';
+import LanguageSelector from './LanguageSelector';
+import { useTranslation } from '../../context/TranslationContext';
 
 const NavButton = ({ children, variant = 'secondary', href, onClick }) => (
   <button
@@ -117,37 +119,38 @@ const HomePage = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
+  const { translations } = useTranslation();
 
   const features = [
     {
       icon: Layers,
-      title: "PAN Integration",
-      description: "Connect all your bank accounts instantly with just your PAN details"
+      title: translations.featureList.panIntegration.title,
+      description: translations.featureList.panIntegration.description
     },
     {
       icon: BarChart2,
-      title: "Smart Analytics",
-      description: "Comprehensive analysis of your spending patterns and financial health"
+      title: translations.featureList.smartAnalytics.title,
+      description: translations.featureList.smartAnalytics.description
     },
     {
       icon: IndianRupee,
-      title: "Financial Goals",
-      description: "Create custom saving pots for your goals with automated tracking"
+      title: translations.featureList.financialGoals.title,
+      description: translations.featureList.financialGoals.description
     },
     {
       icon: Smartphone,
-      title: "Market Insights",
-      description: "Get personalized financial advice and stock market recommendations"
+      title: translations.featureList.marketInsights.title,
+      description: translations.featureList.marketInsights.description
     },
     {
       icon: CreditCard,
-      title: "Rewards System",
-      description: "Earn rewards for smart financial decisions and app usage"
+      title: translations.featureList.rewardsSystem.title,
+      description: translations.featureList.rewardsSystem.description
     },
     {
       icon: Clock,
-      title: "Real-time Monitoring",
-      description: "Track all your transactions and account balances in real-time"
+      title: translations.featureList.realTimeMonitoring.title,
+      description: translations.featureList.realTimeMonitoring.description
     }
   ];
 
@@ -188,7 +191,10 @@ const HomePage = () => {
     <div className="min-h-screen relative">
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
       
-      {/* Replaced navigation with the new Header component */}
+      {/* Language Selector Popup */}
+      <LanguageSelector />
+      
+      {/* Header */}
       <Header 
         onNavigate={handleNavigation}
         onLoginClick={() => setIsLoginOpen(true)}
@@ -227,9 +233,9 @@ const HomePage = () => {
                 className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1 sm:px-4 sm:py-1.5 bg-white/10 backdrop-blur-md rounded-full text-white text-xs sm:text-sm mb-4 sm:mb-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20"
               >
                 <span className="px-2 py-0.5 sm:px-3 sm:py-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full text-xs font-medium">
-                  NEW
+                  {translations.hero.newBadge}
                 </span>
-                UPI payments enabled 🚀
+                {translations.hero.upiEnabled}
               </motion.div>
               
               <motion.h1 
@@ -238,7 +244,7 @@ const HomePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                Your Financial Journey<br className="hidden sm:block" /> Made Smarter
+                {translations.hero.title}
               </motion.h1>
               
               <motion.p 
@@ -247,8 +253,7 @@ const HomePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                Connect all your bank accounts with a single PAN, get intelligent insights,
-                and make informed financial decisions with FinanceSeer.
+                {translations.hero.description}
               </motion.p>
               
               <motion.div 
@@ -261,13 +266,13 @@ const HomePage = () => {
                   onClick={() => setIsRegisterOpen(true)}
                   className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  Start Banking <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  {translations.hero.startBanking} <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button 
                   onClick={() => setIsLoginOpen(true)}
                   className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md text-white rounded-full font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 border border-white/20"
                 >
-                  Login to Account
+                  {translations.hero.loginToAccount}
                 </button>
               </motion.div>
             </motion.div>
@@ -295,14 +300,13 @@ const HomePage = () => {
           <div ref={featuresRef} className="py-24 border-t border-gray-100 scroll-mt-24">
             <div className="text-center mb-16">
               <div className="inline-block bg-emerald-50 text-emerald-600 px-4 py-1 rounded-full text-sm font-medium mb-4">
-                Features
+                {translations.features.title}
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                Banking Reimagined for the Digital India
+                {translations.features.heading}
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Experience next-generation banking with cutting-edge technology, complete transparency, 
-                and personalized service designed for your financial success
+                {translations.features.description}
               </p>
             </div>
 
@@ -335,22 +339,22 @@ const HomePage = () => {
         onClose={() => setIsRegisterOpen(false)} 
       />
 
-      {/* Updated Chatbot button with higher z-index and more distinct styling */}
+      {/* Updated Chatbot button with translations */}
       {!showChatbot && (
         <button 
           onClick={toggleChatbot}
           className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-700 hover:shadow-2xl transition-all flex items-center justify-center z-[9999]"
-          aria-label="Chat with Aleeza"
-          style={{ transform: 'translateZ(0)' }} // Force hardware acceleration
+          aria-label={translations.chatbot.label}
+          style={{ transform: 'translateZ(0)' }}
         >
           <MessageSquare className="w-7 h-7" />
         </button>
       )}
       
-      {/* Updated Chatbot container with higher z-index */}
+      {/* Chatbot container */}
       {showChatbot && (
         <div className="fixed bottom-0 right-0 z-[9999] w-[400px] h-[70vh] m-6" 
-             style={{ transform: 'translateZ(0)' }}> {/* Force hardware acceleration */}
+             style={{ transform: 'translateZ(0)' }}>
           <Chatbot 
             onClose={toggleChatbot} 
             containerClass="w-full h-full shadow-2xl" 

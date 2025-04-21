@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiBell, FiX, FiTrash2 } from "react-icons/fi";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const NotificationPanel = ({ 
   notifications, 
@@ -13,6 +14,33 @@ const NotificationPanel = ({
   const [isConfirmDeleteAll, setIsConfirmDeleteAll] = useState(false);
   const [localNotifications, setLocalNotifications] = useState(notifications);
   
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      notificationPanel: {
+        noNotifications: "No notifications",
+        clearAll: "Clear all",
+        loading: "Loading notifications...",
+        unreadNotifications: "Unread notifications",
+        allNotifications: "All notifications",
+        markAllRead: "Mark all as read",
+        justNow: "Just now",
+        minutesAgo: "minutes ago",
+        hoursAgo: "hours ago",
+        daysAgo: "days ago",
+        viewAll: "View all notifications",
+        notifications: "Notifications",
+        new: "new",
+        cancel: "Cancel",
+        confirm: "Confirm",
+        areYouSure: "Are you sure you want to clear all notifications?"
+      }
+    } 
+  };
+  
+  const { notificationPanel } = translations;
+
   // Keep local notifications in sync with props
   useEffect(() => {
     setLocalNotifications(notifications);
@@ -72,11 +100,11 @@ const NotificationPanel = ({
   return (
     <>
       <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white z-10">
-        <h3 className="font-semibold text-gray-800">Notifications</h3>
+        <h3 className="font-semibold text-gray-800">{notificationPanel.notifications}</h3>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full">
-              {unreadCount} new
+              {unreadCount} {notificationPanel.new}
             </span>
           )}
           
@@ -86,7 +114,7 @@ const NotificationPanel = ({
               className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 border border-red-100 rounded-lg px-2 py-1 hover:bg-red-50 transition-colors"
             >
               <FiTrash2 size={12} />
-              Clear All
+              {notificationPanel.clearAll}
             </button>
           )}
         </div>
@@ -94,19 +122,19 @@ const NotificationPanel = ({
       
       {isConfirmDeleteAll && (
         <div className="p-3 bg-red-50 border-b border-red-100">
-          <p className="text-sm text-red-700 mb-2">Are you sure you want to clear all notifications?</p>
+          <p className="text-sm text-red-700 mb-2">{notificationPanel.areYouSure}</p>
           <div className="flex justify-end gap-2">
             <button 
               onClick={() => setIsConfirmDeleteAll(false)}
               className="px-3 py-1 text-xs bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              {notificationPanel.cancel}
             </button>
             <button 
               onClick={handleClearAll}
               className="px-3 py-1 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
-              Confirm
+              {notificationPanel.confirm}
             </button>
           </div>
         </div>
@@ -114,14 +142,14 @@ const NotificationPanel = ({
       
       {isLoading ? (
         <div className="p-4 text-center text-gray-500">
-          Loading notifications...
+          {notificationPanel.loading}
         </div>
       ) : localNotifications.length === 0 ? (
         <div className="p-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
             <FiBell size={24} className="text-gray-400" />
           </div>
-          <p className="text-gray-500">No notifications yet</p>
+          <p className="text-gray-500">{notificationPanel.noNotifications}</p>
         </div>
       ) : (
         <>
@@ -180,7 +208,7 @@ const NotificationPanel = ({
               onClick={() => console.log('View all notifications')}
               className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline"
             >
-              View all notifications
+              {notificationPanel.viewAll}
             </button>
           </div>
         </>

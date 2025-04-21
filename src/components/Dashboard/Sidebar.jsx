@@ -1,15 +1,39 @@
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, useEffect, memo, useCallback, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaHome, FaChartLine, FaLightbulb, FaGem, FaPiggyBank, FaChartBar, FaQuestionCircle, FaSignOutAlt, FaBars, FaTimes, FaCog } from 'react-icons/fa';
 import Settings from './Settings';
 import Help from '../Help/Help';
+import { TranslationContext2 } from '../../context/TranslationContext2';
 
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      sidebar: { 
+        appName: "Financeseer",
+        menu: {
+          home: "Home",
+          markets: "Markets",
+          prediction: "Prediction",
+          treasures: "Treasures",
+          savings: "Savings",
+          analytics: "Analytics",
+          settings: "Settings",
+          help: "Help",
+          logout: "Logout"
+        }
+      }
+    } 
+  };
+  
+  const { sidebar } = translations;
 
   // Prevent scrolling when mobile sidebar is open
   useEffect(() => {
@@ -25,12 +49,12 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   }, [mobileOpen]);
 
   const menuItems = [
-    { text: 'Home', icon: <FaHome className="w-5 h-5" />, path: '/landing' },
-    { text: 'Markets', icon: <FaChartLine className="w-5 h-5" />, path: '/markets' },
-    { text: 'Prediction', icon: <FaLightbulb className="w-5 h-5" />, path: '/predictions' },
-    { text: 'Treasures', icon: <FaGem className="w-5 h-5" />, path: '/treasures' },
-    { text: 'Savings', icon: <FaPiggyBank className="w-5 h-5" />, path: '/savings' },
-    { text: 'Analytics', icon: <FaChartBar className="w-5 h-5" />, path: '/dashboard' },
+    { text: sidebar.menu.home, icon: <FaHome className="w-5 h-5" />, path: '/landing' },
+    { text: sidebar.menu.markets, icon: <FaChartLine className="w-5 h-5" />, path: '/markets' },
+    { text: sidebar.menu.prediction, icon: <FaLightbulb className="w-5 h-5" />, path: '/predictions' },
+    { text: sidebar.menu.treasures, icon: <FaGem className="w-5 h-5" />, path: '/treasures' },
+    { text: sidebar.menu.savings, icon: <FaPiggyBank className="w-5 h-5" />, path: '/savings' },
+    { text: sidebar.menu.analytics, icon: <FaChartBar className="w-5 h-5" />, path: '/dashboard' },
   ];
 
   const handleLogout = useCallback(() => {
@@ -44,9 +68,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   }, [navigate, setMobileOpen]);
 
   const bottomMenuItems = [
-    { text: 'Settings', icon: <FaCog className="w-5 h-5" />, onClick: () => setShowSettings(true) },
-    { text: 'Help', icon: <FaQuestionCircle className="w-5 h-5" />, onClick: () => setShowHelp(true) },
-    { text: 'Logout', icon: <FaSignOutAlt className="w-5 h-5" />, onClick: handleLogout },
+    { text: sidebar.menu.settings, icon: <FaCog className="w-5 h-5" />, onClick: () => setShowSettings(true) },
+    { text: sidebar.menu.help, icon: <FaQuestionCircle className="w-5 h-5" />, onClick: () => setShowHelp(true) },
+    { text: sidebar.menu.logout, icon: <FaSignOutAlt className="w-5 h-5" />, onClick: handleLogout },
   ];
 
   const SidebarContent = memo(() => (
@@ -57,7 +81,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center mr-3">
             <span className="text-white font-bold">F</span>
           </div>
-          <span className="text-lg font-semibold text-gray-800">Financeseer</span>
+          <span className="text-lg font-semibold text-gray-800">{sidebar.appName}</span>
         </div>
         <button 
           className="lg:hidden text-gray-500 hover:text-gray-800 transition-colors"

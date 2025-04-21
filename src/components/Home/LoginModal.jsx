@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, ArrowRight, X, CheckCircle, Shield } from 'lucide-react';
 import { useLoginUserMutation } from '../../state/api';
 import { useAdminLoginMutation } from '../../state/adminApi';
+import { useTranslation } from '../../context/TranslationContext';
 
 const LoginModal = ({ open, onClose, onRegister }) => {
+  const { translations } = useTranslation();
   const [pan, setPan] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -62,19 +64,16 @@ const LoginModal = ({ open, onClose, onRegister }) => {
 
         console.log('Admin login response:', result);
 
-        // Check if we have a valid response
         if (result && (result.token || (result.data && result.data.token))) {
           const token = result.token || result.data.token;
           const user = result.user || result.data.user;
 
-          // Store admin data
           localStorage.setItem('adminToken', token);
           localStorage.setItem('isAdmin', 'true');
           localStorage.setItem('adminUser', JSON.stringify(user));
 
           setLoginSuccess(true);
 
-          // Use a slightly longer delay to ensure storage is complete
           setTimeout(() => {
             onClose();
             navigate('/admin/dashboard', { replace: true });
@@ -102,7 +101,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(err.message || translations.login.loginFailed);
     }
   };
 
@@ -130,7 +129,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        Login Successful!
+        {translations.login.loginSuccessful}
       </motion.h3>
       <motion.p
         className="text-white/80 mt-2"
@@ -138,7 +137,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        Redirecting to {isAdmin ? 'admin' : 'dashboard'}...
+        {isAdmin ? translations.login.redirectingToAdmin : translations.login.redirectingToDashboard}
       </motion.p>
     </motion.div>
   );
@@ -213,7 +212,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
               }}
               transition={{ duration: 0.5 }}
             >
-              {isAdminMode ? 'Admin Access' : 'Welcome Back'}
+              {isAdminMode ? translations.login.adminAccess : translations.login.welcomeBack}
             </motion.h2>
             <motion.p 
               animate={{ 
@@ -222,8 +221,8 @@ const LoginModal = ({ open, onClose, onRegister }) => {
               transition={{ duration: 0.5 }}
             >
               {isAdminMode 
-                ? 'Login to access administrative controls' 
-                : 'Login to access your secure banking dashboard'}
+                ? translations.login.adminDescription 
+                : translations.login.userDescription}
             </motion.p>
           </div>
 
@@ -252,7 +251,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">Customer</span>
+                <span className="relative z-10">{translations.login.customer}</span>
               </button>
               <button
                 onClick={() => setIsAdminMode(true)}
@@ -270,7 +269,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">Admin</span>
+                <span className="relative z-10">{translations.login.admin}</span>
               </button>
             </motion.div>
           </div>
@@ -311,7 +310,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
                   type="text"
                   value={pan}
                   onChange={(e) => setPan(isAdminMode ? e.target.value : e.target.value.toUpperCase())}
-                  placeholder={isAdminMode ? 'Enter Employee ID' : 'Enter PAN Number'}
+                  placeholder={isAdminMode ? translations.login.enterEmployeeID : translations.login.enterPAN}
                   animate={{ 
                     borderColor: isAdminMode ? 'rgba(147, 197, 253, 0.8)' : 'rgba(110, 231, 183, 0.8)' 
                   }}
@@ -354,7 +353,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter Password"
+                  placeholder={translations.login.enterPassword}
                   animate={{ 
                     borderColor: isAdminMode ? 'rgba(147, 197, 253, 0.8)' : 'rgba(110, 231, 183, 0.8)' 
                   }}
@@ -412,11 +411,11 @@ const LoginModal = ({ open, onClose, onRegister }) => {
               ) : loginSuccess ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />
-                  <span>Logged In</span>
+                  <span>{translations.login.loggedIn}</span>
                 </div>
               ) : (
                 <>
-                  {isAdminMode ? 'Admin Access' : 'Sign In'} <ArrowRight className="w-5 h-5" />
+                  {isAdminMode ? translations.login.adminAccess : translations.login.signIn} <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </motion.button>
@@ -431,7 +430,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
               transition={{ duration: 0.3 }}
             >
               <p className="text-gray-600">
-                Don't have an account?{' '}
+                {translations.login.dontHaveAccount}{' '}
                 <motion.button 
                   onClick={() => {
                     onClose();
@@ -440,7 +439,7 @@ const LoginModal = ({ open, onClose, onRegister }) => {
                   whileHover={{ scale: 1.05 }}
                   className="text-emerald-600 hover:text-emerald-700 font-medium underline-offset-2 hover:underline"
                 >
-                  Sign up
+                  {translations.login.signUp}
                 </motion.button>
               </p>
             </motion.div>

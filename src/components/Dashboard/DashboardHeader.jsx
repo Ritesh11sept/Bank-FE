@@ -1,18 +1,39 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   HomeIcon, 
   ChartBarIcon, 
   LightBulbIcon, 
   CurrencyDollarIcon, 
-  CashIcon,
-  LogoutIcon
+  CashIcon
 } from "@heroicons/react/outline";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const DashboardHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
+
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      dashboard: { 
+        header: {
+          home: "Home",
+          dashboard: "Dashboard",
+          predictions: "Predictions",
+          insights: "Insights",
+          treasures: "Treasures",
+          savings: "Savings",
+          logout: "Logout"
+        }
+      }
+    } 
+  };
+  
+  const { dashboard } = translations;
+  const headerText = dashboard.header;
 
   const handleLogout = () => {
     // Add any logout logic here (clear tokens, etc.)
@@ -20,12 +41,12 @@ const DashboardHeader = () => {
   };
 
   const navItems = [
-    { path: "/landing", name: "Home", icon: HomeIcon },
-    { path: "/dashboard", name: "Dashboard", icon: ChartBarIcon },
-    { path: "/predictions", name: "Predictions", icon: LightBulbIcon },
-    { path: "/insights", name: "Insights", icon: CurrencyDollarIcon },
-    { path: "/treasures", name: "Treasures", icon: CashIcon },
-    { path: "/savings", name: "Savings", icon: CashIcon },
+    { path: "/landing", name: headerText.home, icon: HomeIcon },
+    { path: "/dashboard", name: headerText.dashboard, icon: ChartBarIcon },
+    { path: "/predictions", name: headerText.predictions, icon: LightBulbIcon },
+    { path: "/insights", name: headerText.insights, icon: CurrencyDollarIcon },
+    { path: "/treasures", name: headerText.treasures, icon: CashIcon },
+    { path: "/savings", name: headerText.savings, icon: CashIcon },
   ];
 
   return (
@@ -68,7 +89,7 @@ const DashboardHeader = () => {
             <button
               onClick={handleLogout}
               className="flex flex-col items-center px-2 py-1 rounded-md text-gray-700 hover:bg-gray-100 transition-all duration-200"
-              aria-label="Logout"
+              aria-label={headerText.logout}
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -84,7 +105,7 @@ const DashboardHeader = () => {
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
                 />
               </svg>
-              <span className="text-xs mt-1">Logout</span>
+              <span className="text-xs mt-1">{headerText.logout}</span>
             </button>
           </div>
         </div>

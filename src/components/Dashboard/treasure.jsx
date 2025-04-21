@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FiGift, FiAward, FiUsers, FiCreditCard, FiShoppingBag, 
@@ -12,8 +12,22 @@ import {
   useRevealScratchCardMutation,
   useSubmitGameScoreMutation 
 } from "../../state/api";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const Treasures = () => {
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      treasures: {
+        title: "Rewards & Treasures",
+        // Fallback translations if needed...
+      }
+    } 
+  };
+  
+  const { treasures: t } = translations;
+
   // Game states
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameScore, setGameScore] = useState(0);
@@ -227,10 +241,10 @@ const Treasures = () => {
   const TreasuresContent = () => (
     <div className="p-6 lg:p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold text-gray-800">Rewards & Treasures</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">{t.title}</h1>
         <div className="flex items-center text-emerald-600 gap-2 bg-emerald-50 px-4 py-2 rounded-lg">
           <FiAward size={20} />
-          <span className="font-medium">{userData.points || 0} Reward Points</span>
+          <span className="font-medium">{userData.points || 0} {t.rewardPoints}</span>
         </div>
       </div>
 
@@ -239,17 +253,17 @@ const Treasures = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <FiCalendar className="text-blue-600" />
-            <span>Daily Login Streak</span>
+            <span>{t.loginStreak.title}</span>
           </h2>
           <span className="text-sm text-blue-600 bg-white px-3 py-1 rounded-full shadow-sm">
-            Day {userData.loginStreak || 0}
+            {t.loginStreak.day} {userData.loginStreak || 0}
           </span>
         </div>
         
         <div className="grid grid-cols-7 gap-2 mb-4">
           {Array.from({ length: 7 }, (_, i) => (
             <div key={i} className={`relative h-16 rounded-lg ${i < (userData.loginStreak % 7) ? 'bg-blue-500' : 'bg-gray-200'} flex items-center justify-center`}>
-              <span className="text-sm font-medium text-white">Day {i+1}</span>
+              <span className="text-sm font-medium text-white">{t.loginStreak.day} {i+1}</span>
               {i < (userData.loginStreak % 7) && (
                 <div className="absolute -top-1 -right-1 bg-white rounded-full w-5 h-5 flex items-center justify-center border border-blue-500">
                   <FiCheck className="text-blue-500 text-xs" />
@@ -261,19 +275,19 @@ const Treasures = () => {
         
         <div className="bg-white rounded-lg p-4 flex items-center justify-between">
           <div>
-            <div className="text-sm text-gray-500">Weekly Reward (Day 7)</div>
+            <div className="text-sm text-gray-500">{t.loginStreak.weeklyReward}</div>
             <div className="font-medium text-blue-700">
-              Special Scratch Card + 50 Points
+              {t.loginStreak.rewardDescription}
             </div>
           </div>
           <div className="text-sm">
             {userData.loginStreak % 7 === 0 ? (
               <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                Claimed Today!
+                {t.loginStreak.claimedToday}
               </span>
             ) : (
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                {7 - (userData.loginStreak % 7)} days remaining
+                {7 - (userData.loginStreak % 7)} {t.loginStreak.daysRemaining}
               </span>
             )}
           </div>
@@ -289,10 +303,10 @@ const Treasures = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <FiGift className="text-purple-600" />
-                <span>Scratch Cards</span>
+                <span>{t.scratchCards.title}</span>
               </h2>
               <span className="text-sm text-purple-600 bg-white px-3 py-1 rounded-full shadow-sm">
-                {validScratchCards.filter(card => !card.isRevealed).length} Available
+                {validScratchCards.filter(card => !card.isRevealed).length} {t.scratchCards.available}
               </span>
             </div>
 
@@ -321,22 +335,22 @@ const Treasures = () => {
                               </div>
                             </div>
                             <div className="absolute top-2 right-2 text-xs bg-white/80 px-2 py-1 rounded-full">
-                              Scratching...
+                              {t.scratchCards.scratching}
                             </div>
                           </div>
                         ) : (
                           <>
                             <div className="text-white text-center p-4">
-                              <div className="text-xl font-bold mb-1">Scratch & Win</div>
-                              <div className="text-white/80 text-sm">Tap to reveal your reward</div>
+                              <div className="text-xl font-bold mb-1">{t.scratchCards.scratchAndWin}</div>
+                              <div className="text-white/80 text-sm">{t.scratchCards.tapToReveal}</div>
                             </div>
                             {card.isNew && (
                               <div className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-0.5 rounded text-gray-900 font-medium">
-                                NEW
+                                {t.scratchCards.new}
                               </div>
                             )}
                             <div className="absolute bottom-2 text-xs w-full text-center text-white/70">
-                              Expires in {getDaysRemaining(card.expiry)} days
+                              {t.scratchCards.expiresIn} {getDaysRemaining(card.expiry)} {t.scratchCards.days}
                             </div>
                           </>
                         )}
@@ -350,15 +364,16 @@ const Treasures = () => {
                           animate={{ scale: 1, opacity: 1 }}
                           className="bg-white h-40 border-2 border-purple-300 flex flex-col items-center justify-center p-4"
                         >
-                          <div className="text-sm text-gray-500 mb-1">You've won</div>
+                          <div className="text-sm text-gray-500 mb-1">{t.scratchCards.youWon}</div>
                           <div className="text-2xl font-bold text-purple-700 mb-2">
-                            {card.value} {card.type === "cashback" ? "Cashback" : card.type === "discount" ? "Off" : "Points"}
+                            {card.value} {card.type === "cashback" ? t.scratchCards.cashback : 
+                                         card.type === "discount" ? t.scratchCards.off : t.scratchCards.points}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            Reward already applied to your account
+                            {t.scratchCards.rewardApplied}
                           </div>
                           <div className="absolute bottom-2 text-xs text-gray-400">
-                            Expires on {formatDate(card.expiry)}
+                            {t.scratchCards.expiresOn} {formatDate(card.expiry)}
                           </div>
                         </motion.div>
                     )}
@@ -367,9 +382,9 @@ const Treasures = () => {
               </div>
             ) : (
               <div className="bg-white rounded-lg p-6 text-center">
-                <div className="text-gray-500 mb-2">No scratch cards available right now</div>
+                <div className="text-gray-500 mb-2">{t.scratchCards.noCards}</div>
                 <div className="text-sm text-gray-400">
-                  Come back tomorrow for new rewards or continue your login streak
+                  {t.scratchCards.comeBack}
                 </div>
               </div>
             )}
@@ -380,15 +395,15 @@ const Treasures = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <FiPlay className="text-pink-600" />
-                <span>Quick Hit Game</span>
+                <span>{t.game.title}</span>
               </h2>
               {isGameActive && !gameOver && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600 bg-white px-3 py-1 rounded-full shadow-sm">
-                    Score: {gameScore}
+                    {t.game.score}: {gameScore}
                   </span>
                   <span className="text-sm text-red-600 bg-white px-3 py-1 rounded-full shadow-sm">
-                    Time: {gameTime}s
+                    {t.game.time}: {gameTime}s
                   </span>
                 </div>
               )}
@@ -401,15 +416,15 @@ const Treasures = () => {
                   exit={{ opacity: 0 }}
                   className="bg-white rounded-lg p-6 text-center"
                 >
-                  <div className="text-gray-700 mb-3">Play "Quick Hit" and earn reward points!</div>
+                  <div className="text-gray-700 mb-3">{t.game.description}</div>
                   <div className="text-sm text-gray-500 mb-4">
-                    Hit as many targets as you can in 30 seconds. Each hit gives you 10 points!
+                    {t.game.instructions}
                   </div>
                   <button 
                     onClick={startGame}
                     className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium"
                   >
-                    Start Game
+                    {t.game.startGame}
                   </button>
                 </motion.div>
               )}
@@ -444,16 +459,16 @@ const Treasures = () => {
                   animate={{ opacity: 1 }}
                   className="bg-white rounded-lg p-6 text-center"
                 >
-                  <div className="text-xl font-bold text-gray-800 mb-2">Game Over!</div>
-                  <div className="text-2xl font-bold text-pink-600 mb-4">Your Score: {gameScore}</div>
+                  <div className="text-xl font-bold text-gray-800 mb-2">{t.game.gameOver}</div>
+                  <div className="text-2xl font-bold text-pink-600 mb-4">{t.game.yourScore}: {gameScore}</div>
                   
                   {gameResult && (
                     <div className="bg-green-50 border border-green-100 rounded-lg p-3 mb-4">
                       <div className="text-green-700 font-medium mb-1">
-                        You earned {gameResult.pointsAwarded} reward points!
+                        {t.game.earned} {gameResult.pointsAwarded} {t.game.rewardPoints}
                       </div>
                       <div className="text-sm text-green-600">
-                        New total: {gameResult.rewards.points} points
+                        {t.game.newTotal}: {gameResult.rewards.points} {t.scratchCards.points}
                       </div>
                     </div>
                   )}
@@ -463,13 +478,13 @@ const Treasures = () => {
                       onClick={startGame}
                       className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors font-medium"
                     >
-                      Play Again
+                      {t.game.playAgain}
                     </button>
                     <button 
                       onClick={() => setGameOver(false)}
                       className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                     >
-                      Close
+                      {t.game.close}
                     </button>
                   </div>
                 </motion.div>
@@ -482,10 +497,10 @@ const Treasures = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <FiShoppingBag className="text-orange-500" />
-                <span>Exclusive Offers</span>
+                <span>{t.offers.title}</span>
               </h2>
               <button className="text-sm text-blue-600 flex items-center gap-1 hover:underline">
-                View All <FiArrowRight size={14} />
+                {t.offers.viewAll} <FiArrowRight size={14} />
               </button>
             </div>
 
@@ -509,7 +524,7 @@ const Treasures = () => {
                           </button>
                         </div>
                         <div className="text-xs text-gray-500">
-                          Valid till: {offer.validTill}
+                          {t.offers.validTill}: {offer.validTill}
                         </div>
                       </div>
                     </div>
@@ -524,24 +539,24 @@ const Treasures = () => {
         <div className="space-y-6">
           {/* Stats Card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">Rewards Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">{t.summary.title}</h2>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                <div className="text-xs text-blue-500 mb-1">Total Points</div>
+                <div className="text-xs text-blue-500 mb-1">{t.summary.totalPoints}</div>
                 <div className="text-2xl font-bold text-blue-700">{userData.points || 0}</div>
               </div>
               <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
-                <div className="text-xs text-emerald-500 mb-1">Login Streak</div>
-                <div className="text-2xl font-bold text-emerald-700">{userData.loginStreak || 0} days</div>
+                <div className="text-xs text-emerald-500 mb-1">{t.summary.loginStreak}</div>
+                <div className="text-2xl font-bold text-emerald-700">{userData.loginStreak || 0} {t.summary.days}</div>
               </div>
             </div>
             
             <div className="bg-purple-50 rounded-lg p-4 border border-purple-100 mb-4">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-xs text-purple-500">Weekly Progress</div>
+                <div className="text-xs text-purple-500">{t.summary.weeklyProgress}</div>
                 <div className="text-xs text-purple-700 font-medium">
-                  Day {userData.loginStreak % 7}/7
+                  {t.summary.day} {userData.loginStreak % 7}/7
                 </div>
               </div>
               <div className="w-full bg-white rounded-full h-2.5 mb-2">
@@ -551,13 +566,13 @@ const Treasures = () => {
                 ></div>
               </div>
               <div className="text-sm text-purple-600">
-                {7 - (userData.loginStreak % 7)} days to weekly bonus
+                {7 - (userData.loginStreak % 7)} {t.summary.daysToBonus}
               </div>
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-600">
-                Points Value
+                {t.summary.pointsValue}
               </div>
               <div className="text-sm font-medium">
                 ₹{((userData.points || 0) * 0.05).toFixed(2)}
@@ -569,15 +584,15 @@ const Treasures = () => {
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl shadow-sm border border-emerald-100 p-6">
             <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
               <FiUsers className="text-emerald-600" />
-              <span>Refer & Earn</span>
+              <span>{t.referral.title}</span>
             </h2>
             
             <div className="text-gray-700 text-sm mb-4">
-              Invite your friends to join our banking app and both of you can earn rewards!
+              {t.referral.description}
             </div>
             
             <div className="bg-white rounded-lg p-4 mb-4 border border-emerald-100">
-              <div className="text-xs text-gray-500 mb-1">Your Referral Code</div>
+              <div className="text-xs text-gray-500 mb-1">{t.referral.yourCode}</div>
               <div className="flex items-center justify-between">
                 <div className="font-mono font-medium text-lg">BANKAPP123456</div>
                 <button 
@@ -595,16 +610,16 @@ const Treasures = () => {
             <div className="grid grid-cols-2 gap-3 mb-4 text-center">
               <div className="bg-white rounded-lg p-3 border border-emerald-100">
                 <div className="text-2xl font-bold text-emerald-600">₹100</div>
-                <div className="text-xs text-gray-500">For you</div>
+                <div className="text-xs text-gray-500">{t.referral.forYou}</div>
               </div>
               <div className="bg-white rounded-lg p-3 border border-emerald-100">
                 <div className="text-2xl font-bold text-emerald-600">₹50</div>
-                <div className="text-xs text-gray-500">For friend</div>
+                <div className="text-xs text-gray-500">{t.referral.forFriend}</div>
               </div>
             </div>
             
             <button className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 font-medium">
-              Invite Friends <FiUsers size={16} />
+              {t.referral.inviteFriends} <FiUsers size={16} />
             </button>
           </div>
           
@@ -612,7 +627,7 @@ const Treasures = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
               <FiTrendingUp className="text-blue-600" />
-              <span>Point Leaders</span>
+              <span>{t.leaderboard.title}</span>
             </h2>
             
             <div className="space-y-3">
@@ -621,7 +636,7 @@ const Treasures = () => {
                 { name: "Priya S.", points: 1250, position: 1 },
                 { name: "Rahul K.", points: 980, position: 2 },
                 { name: "Ananya M.", points: 875, position: 3 },
-                { name: "You", points: userData.points || 0, position: 5, isUser: true }
+                { name: t.leaderboard.you, points: userData.points || 0, position: 5, isUser: true }
               ].map((user, index) => (
                 <div 
                   key={index} 
@@ -646,7 +661,7 @@ const Treasures = () => {
             
             <div className="mt-4 text-center">
               <button className="text-sm text-blue-600 hover:underline">
-                View Full Leaderboard
+                {t.leaderboard.viewFull}
               </button>
             </div>
           </div>

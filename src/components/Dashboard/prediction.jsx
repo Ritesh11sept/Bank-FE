@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 import DashboardLayout from "./DashboardLayout";
 import { useGetDetailedTransactionsQuery, useGetUserProfileQuery } from "../../state/api";
 import { motion } from "framer-motion";
@@ -21,12 +21,80 @@ import {
 } from "recharts";
 import regression from "regression";
 import { FiTrendingUp, FiTrendingDown, FiAlertCircle, FiAward, FiTarget } from "react-icons/fi";
+import { TranslationContext2 } from "../../context/TranslationContext2";
+import AiFinanceAdvisor from "./AiFinanceAdvisor";
 
 const Predictions = () => {
   const [timeRange, setTimeRange] = useState("month"); // week, month, year
   const [showPredictions, setShowPredictions] = useState(true);
-  const { data: transactionData, isLoading: isTransactionLoading } = useGetDetailedTransactionsQuery();
+  const { data: transactionData, isLoading: isTransactionLoading, error } = useGetDetailedTransactionsQuery();
   const { data: userProfile } = useGetUserProfileQuery();
+  
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      predictions: {
+        title: "Financial Insights & Predictions",
+        subtitle: "Smart analysis and forecasting based on your transaction patterns",
+        loading: "Loading financial insights...",
+        weekly: "Weekly",
+        monthly: "Monthly",
+        hide: "Hide",
+        show: "Show",
+        predictions: "Predictions",
+        earnings: "Earnings",
+        income: "Income",
+        spending: "Spending",
+        expenses: "Expenses",
+        savings: "Savings",
+        balance: "Balance",
+        spendingPattern: "Spending Pattern",
+        topSpendingCategories: "Top Spending Categories",
+        financialInsights: "Financial Insights",
+        smartSuggestions: "Smart Suggestions",
+        highestSpendingDay: "Highest Spending Day",
+        avgDailySpending: "Average Daily Spending",
+        monthComparison: "Month to Month",
+        savingsAchievement: "Savings Achievement",
+        noSpendDay: "no-spend day",
+        noSpendDays: "no-spend days",
+        takeControl: "Take Control of Your Finances",
+        setBudget: "Set a budget for this",
+        optimizeSavings: "to optimize your savings",
+        setBudgetGoals: "Set Budget Goals",
+        noDataSuggestions: "Not enough data to provide suggestions yet",
+        fromSources: "from",
+        sources: "sources",
+        noIncomeRecorded: "No income recorded",
+        averageDaily: "Average daily",
+        youSaved: "You saved",
+        ofYourIncome: "of your income",
+        youSpentMoreThanEarned: "You spent more than you earned",
+        trend: "Spending Trend:",
+        trendText: "Your spending pattern is",
+        increasing: "increasing",
+        decreasing: "decreasing",
+        stable: "stable",
+        nextMonth: "next month",
+        sameAsLastMonth: "Same as last month",
+        spentMore: "You spent",
+        spentLess: "You spent",
+        lastMonth: "compared to last month",
+        increase: "increase",
+        decrease: "decrease",
+        youSpentMost: "You spent the most on",
+        noSpendingRecorded: "No spending recorded",
+        youHad: "You had",
+        thats: "that's",
+        spendingTrend: "Your spending is trending",
+        actualSpending: "Actual Spending",
+        predictedSpending: "Predicted Spending",
+      }
+    } 
+  };
+  
+  const { predictions: t } = translations;
   
   // Format currency to INR
   const formatINR = (value) => {
@@ -323,13 +391,50 @@ const Predictions = () => {
   }, [transactionData, timeRange]);
   
   // Loading state
-  if (isTransactionLoading || !processedData) {
+  if (isTransactionLoading) {
     return (
       <DashboardLayout>
         <div className="w-full h-full p-8 flex items-center justify-center">
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-lg text-gray-600">Loading financial insights...</p>
+            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-lg text-gray-600">{t.loading}</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="w-full h-full p-8 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <p className="text-lg text-gray-600">Error loading financial data. Please try again later.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+  
+  // Data empty state
+  if (!processedData) {
+    return (
+      <DashboardLayout>
+        <div className="w-full h-full p-8 flex items-center justify-center">
+          <div className="flex flex-col items-center text-center max-w-md">
+            <div className="text-gray-300 text-5xl mb-4">📊</div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Financial Data Available</h3>
+            <p className="text-gray-600">
+              We don't have enough transaction data to generate insights. Please make some transactions first.
+            </p>
           </div>
         </div>
       </DashboardLayout>
@@ -346,13 +451,13 @@ const Predictions = () => {
   
   return (
     <DashboardLayout>
-      <div className="w-full h-[calc(100vh-64px)] overflow-auto p-6 md:p-8 bg-gradient-to-br from-gray-50 to-white">
+      <div className="w-full h-[calc(100vh-64px)] overflow-auto p-6 md:p-8 bg-white">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Financial Insights & Predictions</h1>
-              <p className="mt-1 text-gray-500">Smart analysis and forecasting based on your transaction patterns</p>
+              <h1 className="text-3xl font-bold text-emerald-800">{t.title}</h1>
+              <p className="mt-1 text-emerald-600">{t.subtitle}</p>
             </div>
             
             <div className="mt-4 md:mt-0 flex items-center space-x-4">
@@ -361,29 +466,29 @@ const Predictions = () => {
                   onClick={() => setTimeRange('week')} 
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     timeRange === 'week' 
-                      ? 'bg-indigo-500 text-white shadow-sm' 
+                      ? 'bg-emerald-500 text-white shadow-sm' 
                       : 'text-gray-500 hover:bg-gray-100'
                   }`}
                 >
-                  Weekly
+                  {t.weekly}
                 </button>
                 <button 
                   onClick={() => setTimeRange('month')} 
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                     timeRange === 'month' 
-                      ? 'bg-indigo-500 text-white shadow-sm' 
+                      ? 'bg-emerald-500 text-white shadow-sm' 
                       : 'text-gray-500 hover:bg-gray-100'
                   }`}
                 >
-                  Monthly
+                  {t.monthly}
                 </button>
               </div>
               
               <button 
                 onClick={() => setShowPredictions(!showPredictions)}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 bg-white border border-emerald-200 rounded-lg shadow-sm text-sm font-medium hover:bg-emerald-50 transition-colors text-emerald-700"
               >
-                {showPredictions ? 'Hide' : 'Show'} Predictions
+                {showPredictions ? t.hide : t.show} {t.predictions}
               </button>
             </div>
           </div>
@@ -394,12 +499,12 @@ const Predictions = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+              className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-500">Total Earnings</h3>
-                <span className="text-green-500 bg-green-50 px-2 py-1 rounded-md text-sm font-medium">
-                  Income
+                <h3 className="text-lg font-semibold text-gray-500">{t.earnings}</h3>
+                <span className="text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md text-sm font-medium">
+                  {t.income}
                 </span>
               </div>
               <p className="text-3xl font-bold text-gray-800 mb-1">
@@ -407,8 +512,8 @@ const Predictions = () => {
               </p>
               <p className="text-sm text-gray-500">
                 {currentInsights.totalIncome > 0 
-                  ? `You've received money from ${processedData.weeklyInsights.daysCount} sources ${timePeriodText}`
-                  : `No income recorded ${timePeriodText}`
+                  ? `${t.fromSources} ${processedData.weeklyInsights.daysCount} ${t.sources} ${timePeriodText}`
+                  : `${t.noIncomeRecorded} ${timePeriodText}`
                 }
               </p>
             </motion.div>
@@ -417,12 +522,12 @@ const Predictions = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+              className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-500">Total Spending</h3>
+                <h3 className="text-lg font-semibold text-gray-500">{t.spending}</h3>
                 <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md text-sm font-medium">
-                  Expenses
+                  {t.expenses}
                 </span>
               </div>
               <p className="text-3xl font-bold text-gray-800 mb-1">
@@ -434,7 +539,7 @@ const Predictions = () => {
                     {processedData.spendingDifference.amount > 0 ? '↑' : '↓'} {formatINR(Math.abs(processedData.spendingDifference.amount))} from last month
                   </span>
                 ) : (
-                  `Average daily: ${formatINR(currentInsights.avgDailySpending)}`
+                  `${t.averageDaily}: ${formatINR(currentInsights.avgDailySpending)}`
                 )}
               </p>
             </motion.div>
@@ -443,12 +548,12 @@ const Predictions = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+              className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-500">Savings</h3>
-                <span className="text-blue-500 bg-blue-50 px-2 py-1 rounded-md text-sm font-medium">
-                  Balance
+                <h3 className="text-lg font-semibold text-gray-500">{t.savings}</h3>
+                <span className="text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md text-sm font-medium">
+                  {t.balance}
                 </span>
               </div>
               <p className="text-3xl font-bold text-gray-800 mb-1">
@@ -456,292 +561,310 @@ const Predictions = () => {
               </p>
               <p className="text-sm text-gray-500">
                 {currentInsights.savedAmount > 0 
-                  ? `You saved ${Math.round((currentInsights.savedAmount / currentInsights.totalIncome) * 100)}% of your income ${timePeriodText}`
-                  : `You've spent more than you earned ${timePeriodText}`
+                  ? `${t.youSaved} ${Math.round((currentInsights.savedAmount / currentInsights.totalIncome) * 100)}% ${t.ofYourIncome} ${timePeriodText}`
+                  : `${t.youSpentMoreThanEarned} ${timePeriodText}`
                 }
               </p>
             </motion.div>
           </div>
           
-          {/* Charts & Insights */}
+          {/* Restructured Layout: Main Content + AI Advisor */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Spending Pattern */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 lg:col-span-2"
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Spending Pattern & Predictions</h3>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={processedData.predictions.dailyData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => `₹${value.toLocaleString()}`}
-                    />
-                    <Tooltip
-                      formatter={(value) => [formatINR(value), '']}
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        borderRadius: '8px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        border: '1px solid #e5e7eb'
-                      }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="amount" 
-                      stroke="#6366F1" 
-                      fill="url(#colorSpending)" 
-                      strokeWidth={2}
-                      name="Actual Spending"
-                    />
-                    {showPredictions && (
+            {/* Left Column: Charts & Main Stats (2/3 width) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Spending Pattern */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
+              >
+                <h3 className="text-lg font-semibold text-emerald-800 mb-4">{t.spendingPattern}</h3>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={processedData.predictions.dailyData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                      />
+                      <Tooltip
+                        formatter={(value) => [formatINR(value), '']}
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          borderRadius: '8px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          border: '1px solid #e5e7eb'
+                        }}
+                      />
                       <Area 
                         type="monotone" 
-                        dataKey="predicted" 
-                        stroke="#F59E0B" 
-                        fill="url(#colorPrediction)" 
-                        strokeDasharray="5 5"
+                        dataKey="amount" 
+                        stroke="#10B981" 
+                        fill="url(#colorSpending)" 
                         strokeWidth={2}
-                        name="Predicted Spending"
+                        name={t.actualSpending}
                       />
-                    )}
-                    <defs>
-                      <linearGradient id="colorSpending" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorPrediction" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Legend />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Trend:</span> Your spending is {processedData.predictions.trend}
-                  {timeRange === 'month' && (
-                    processedData.predictions.trend === 'increasing' 
-                      ? `. At this rate, you might spend ${formatINR(processedData.predictions.expectedMonthlySpending)} next month.`
-                      : `. If this continues, you might spend ${formatINR(processedData.predictions.expectedMonthlySpending)} next month.`
-                  )}
-                </p>
-              </div>
-            </motion.div>
-            
-            {/* Top Spending Categories */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Spending Categories</h3>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={currentInsights.topCategories.slice(0, 5)}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      innerRadius={40}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {currentInsights.topCategories.slice(0, 5).map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={[
-                            '#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                            '#EC4899', '#14B8A6', '#F97316'
-                          ][index % 8]} 
+                      {showPredictions && (
+                        <Area 
+                          type="monotone" 
+                          dataKey="predicted" 
+                          stroke="#F59E0B" 
+                          fill="url(#colorPrediction)" 
+                          strokeDasharray="5 5"
+                          strokeWidth={2}
+                          name={t.predictedSpending}
                         />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => [formatINR(value), '']}
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        borderRadius: '8px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        border: '1px solid #e5e7eb'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-2 space-y-1">
-                {currentInsights.topCategories.slice(0, 3).map((category, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="font-medium text-gray-600">{category.name}</span>
-                    <span className="text-gray-500">{formatINR(category.value)}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-          
-          {/* Insights and Suggestions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Smart Insights */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Financial Insights</h3>
-              <div className="space-y-4">
-                {/* Highest Spending Day */}
-                <div className="flex items-start">
-                  <div className="bg-indigo-100 rounded-full p-2 mr-3">
-                    <FiTrendingUp className="text-indigo-600 text-lg" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Highest Spending Day</h4>
-                    <p className="text-sm text-gray-500">
-                      {currentInsights.highestSpendingDay.day !== 'None' 
-                        ? `You spent the most on ${currentInsights.highestSpendingDay.day} (${formatINR(currentInsights.highestSpendingDay.amount)})`
-                        : `No spending recorded ${timePeriodText}`
-                      }
-                    </p>
-                  </div>
+                      )}
+                      <defs>
+                        <linearGradient id="colorSpending" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorPrediction" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Legend />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                
-                {/* Average Daily Spending */}
-                <div className="flex items-start">
-                  <div className="bg-emerald-100 rounded-full p-2 mr-3">
-                    <FiTrendingDown className="text-emerald-600 text-lg" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700">Average Daily Spending</h4>
-                    <p className="text-sm text-gray-500">
-                      Your average daily spending is {formatINR(currentInsights.avgDailySpending)}.
-                      {currentInsights.noSpendDays > 0 && 
-                        ` You had ${currentInsights.noSpendDays} no-spend ${currentInsights.noSpendDays === 1 ? 'day' : 'days'} ${timePeriodText}.`
-                      }
-                    </p>
-                  </div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">{t.trend}</span> {t.trendText} {
+                      processedData.predictions.trend === 'increasing' ? t.increasing : 
+                      processedData.predictions.trend === 'decreasing' ? t.decreasing : 
+                      t.stable
+                    }
+                    {timeRange === 'month' && (
+                      processedData.predictions.trend === 'increasing' 
+                        ? `. At this rate, you might spend ${formatINR(processedData.predictions.expectedMonthlySpending)} ${t.nextMonth}.`
+                        : `. If this continues, you might spend ${formatINR(processedData.predictions.expectedMonthlySpending)} ${t.nextMonth}.`
+                    )}
+                  </p>
                 </div>
-                
-                {/* Spending Comparison */}
-                {timeRange === 'month' && (
-                  <div className="flex items-start">
-                    <div className={`${
-                      processedData.spendingDifference.amount > 0 
-                        ? 'bg-red-100' 
-                        : 'bg-green-100'
-                    } rounded-full p-2 mr-3`}>
-                      {processedData.spendingDifference.amount > 0 
-                        ? <FiTrendingUp className="text-red-600 text-lg" />
-                        : <FiTrendingDown className="text-green-600 text-lg" />
-                      }
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700">Month-over-Month Comparison</h4>
-                      <p className="text-sm text-gray-500">
-                        {processedData.spendingDifference.amount === 0 
-                          ? "Your spending is the same as last month."
-                          : processedData.spendingDifference.amount > 0 
-                            ? `You spent ${formatINR(processedData.spendingDifference.amount)} more than last month (${Math.abs(processedData.spendingDifference.percentage).toFixed(1)}% increase).`
-                            : `You spent ${formatINR(Math.abs(processedData.spendingDifference.amount))} less than last month (${Math.abs(processedData.spendingDifference.percentage).toFixed(1)}% decrease).`
-                        }
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Savings Achievement */}
-                {currentInsights.savedAmount > 0 && (
-                  <div className="flex items-start">
-                    <div className="bg-blue-100 rounded-full p-2 mr-3">
-                      <FiAward className="text-blue-600 text-lg" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700">Savings Achievement</h4>
-                      <p className="text-sm text-gray-500">
-                        You saved {formatINR(currentInsights.savedAmount)} {timePeriodText} — that's {Math.round((currentInsights.savedAmount / currentInsights.totalIncome) * 100)}% of your income!
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-            
-            {/* Smart Suggestions */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.6 }}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Smart Suggestions</h3>
-              {processedData.suggestions.length > 0 ? (
-                <div className="space-y-4">
-                  {processedData.suggestions.map((suggestion, index) => (
-                    <div key={index} className="flex items-start">
-                      <div className="mt-0.5 mr-3">
-                        {suggestion.icon}
+              </motion.div>
+              
+              {/* Insights and Categories */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Financial Insights */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
+                >
+                  <h3 className="text-lg font-semibold text-emerald-800 mb-4">{t.financialInsights}</h3>
+                  <div className="space-y-4">
+                    {/* Highest Spending Day */}
+                    <div className="flex items-start">
+                      <div className="bg-emerald-100 rounded-full p-2 mr-3">
+                        <FiTrendingUp className="text-emerald-600 text-lg" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-700">
-                          {suggestion.category}
-                        </h4>
-                        <p className="text-sm text-gray-500 mb-1">
-                          {suggestion.message}
+                        <h4 className="font-medium text-gray-700">{t.highestSpendingDay}</h4>
+                        <p className="text-sm text-gray-500">
+                          {currentInsights.highestSpendingDay.day !== 'None' 
+                            ? `${t.youSpentMost} ${currentInsights.highestSpendingDay.day} (${formatINR(currentInsights.highestSpendingDay.amount)})`
+                            : `${t.noSpendingRecorded} ${timePeriodText}`
+                          }
                         </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${ 
-                          suggestion.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
-                          suggestion.type === 'alert' ? 'bg-red-100 text-red-700' :
-                          suggestion.type === 'achievement' ? 'bg-emerald-100 text-emerald-700' :
-                          suggestion.type === 'badge' ? 'bg-amber-100 text-amber-700' :
-                          suggestion.type === 'goal' ? 'bg-purple-100 text-purple-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {suggestion.impact}
-                        </span>
                       </div>
                     </div>
-                  ))}
-                  
-                  {/* Next Step Prompt */}
-                  <div className="mt-6 bg-indigo-50 rounded-lg p-4">
-                    <h4 className="font-medium text-indigo-700 mb-1">Want to take control?</h4>
-                    <p className="text-sm text-indigo-600 mb-3">
-                      Set a budget for next {timeRange} to optimize your savings.
-                    </p>
-                    <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                      Set Budget Goals
-                    </button>
+                    
+                    {/* Average Daily Spending */}
+                    <div className="flex items-start">
+                      <div className="bg-emerald-100 rounded-full p-2 mr-3">
+                        <FiTrendingDown className="text-emerald-600 text-lg" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-700">{t.avgDailySpending}</h4>
+                        <p className="text-sm text-gray-500">
+                          {t.averageDaily} {formatINR(currentInsights.avgDailySpending)}.
+                          {currentInsights.noSpendDays > 0 && 
+                            ` ${t.youHad} ${currentInsights.noSpendDays} ${currentInsights.noSpendDays === 1 ? t.noSpendDay : t.noSpendDays} ${timePeriodText}.`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Spending Comparison */}
+                    {timeRange === 'month' && (
+                      <div className="flex items-start">
+                        <div className={`${
+                          processedData.spendingDifference.amount > 0 
+                            ? 'bg-red-100' 
+                            : 'bg-green-100'
+                        } rounded-full p-2 mr-3`}>
+                          {processedData.spendingDifference.amount > 0 
+                            ? <FiTrendingUp className="text-red-600 text-lg" />
+                            : <FiTrendingDown className="text-green-600 text-lg" />
+                          }
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-700">{t.monthComparison}</h4>
+                          <p className="text-sm text-gray-500">
+                            {processedData.spendingDifference.amount === 0 
+                              ? t.sameAsLastMonth
+                              : processedData.spendingDifference.amount > 0 
+                                ? `${t.spentMore} ${formatINR(processedData.spendingDifference.amount)} ${t.lastMonth} (${Math.abs(processedData.spendingDifference.percentage).toFixed(1)}% ${t.increase}).`
+                                : `${t.spentLess} ${formatINR(Math.abs(processedData.spendingDifference.amount))} ${t.lastMonth} (${Math.abs(processedData.spendingDifference.percentage).toFixed(1)}% ${t.decrease}).`
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Savings Achievement */}
+                    {currentInsights.savedAmount > 0 && (
+                      <div className="flex items-start">
+                        <div className="bg-emerald-100 rounded-full p-2 mr-3">
+                          <FiAward className="text-emerald-600 text-lg" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-700">{t.savingsAchievement}</h4>
+                          <p className="text-sm text-gray-500">
+                            {t.youSaved} {formatINR(currentInsights.savedAmount)} {timePeriodText} — {t.thats} {Math.round((currentInsights.savedAmount / currentInsights.totalIncome) * 100)}% {t.ofYourIncome}!
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-                  <FiAlertCircle className="text-4xl mb-2" />
-                  <p>Not enough data to generate suggestions</p>
-                </div>
-              )}
-            </motion.div>
+                </motion.div>
+                
+                {/* Top Spending Categories */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
+                >
+                  <h3 className="text-lg font-semibold text-emerald-800 mb-4">{t.topSpendingCategories}</h3>
+                  <div className="h-52">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={currentInsights.topCategories.slice(0, 5)}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          innerRadius={40}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {currentInsights.topCategories.slice(0, 5).map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={[
+                                '#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#D1FAE5',
+                                '#059669', '#047857', '#065F46', '#064E3B'
+                              ][index % 9]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => [formatINR(value), '']}
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            borderRadius: '8px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                            border: '1px solid #e5e7eb'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    {currentInsights.topCategories.slice(0, 3).map((category, index) => (
+                      <div key={index} className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-gray-600">{category.name}</span>
+                        <span className="text-gray-500">{formatINR(category.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+              
+              {/* Smart Suggestions */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.6 }}
+                className="bg-white rounded-xl shadow-sm p-6 border border-emerald-100"
+              >
+                <h3 className="text-lg font-semibold text-emerald-800 mb-4">{t.smartSuggestions}</h3>
+                {processedData.suggestions.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {processedData.suggestions.map((suggestion, index) => (
+                      <div key={index} className="flex items-start bg-gray-50 p-3 rounded-lg">
+                        <div className="mt-0.5 mr-3">
+                          {suggestion.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-700">
+                            {suggestion.category}
+                          </h4>
+                          <p className="text-sm text-gray-500 mb-1">
+                            {suggestion.message}
+                          </p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${ 
+                            suggestion.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                            suggestion.type === 'alert' ? 'bg-red-100 text-red-700' :
+                            suggestion.type === 'achievement' ? 'bg-emerald-100 text-emerald-700' :
+                            suggestion.type === 'badge' ? 'bg-amber-100 text-amber-700' :
+                            suggestion.type === 'goal' ? 'bg-purple-100 text-purple-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {suggestion.impact}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+                    <FiAlertCircle className="text-4xl mb-2" />
+                    <p>{t.noDataSuggestions}</p>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+            
+            {/* Right Column: AI Advisor (1/3 width) */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* AI Finance Advisor Component */}
+              <AiFinanceAdvisor financialData={processedData} timeRange={timeRange} />
+              
+              {/* Next Step Prompt */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl shadow-md p-6 text-white"
+              >
+                <h3 className="text-lg font-semibold mb-2">{t.takeControl}</h3>
+                <p className="text-sm opacity-90 mb-4">
+                  {t.setBudget} {timeRange} {t.optimizeSavings}
+                </p>
+                <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  {t.setBudgetGoals}
+                </button>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>

@@ -7,8 +7,10 @@ import PasswordSetup from './PasswordSetup';
 import OTPVerification from './OTPVerification';
 import Toast from './Toast';
 import { useRegisterUserMutation, useExtractPANDetailsMutation } from '../../state/api';
+import { useTranslation } from '../../context/TranslationContext';
 
 const RegisterModal = ({ isOpen, onClose }) => {
+  const { translations } = useTranslation();
   const [step, setStep] = useState(1);
   const [userData, setUserData] = useState({
     name: '',
@@ -86,7 +88,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
         }
         
         if (age < 18) {
-          showToast('You must be at least 18 years old to register', 'error');
+          showToast(translations.registration.ageRestriction, 'error');
           setLoading(false);
           return;
         }
@@ -101,11 +103,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
         
         setStep(2); // Move to registration form
       } else {
-        throw new Error(response.message || 'Failed to extract PAN details');
+        throw new Error(response.message || translations.registration.panExtractionFailed);
       }
     } catch (error) {
       console.error('PAN verification error:', error);
-      showToast('Failed to extract details from PAN card. Please try again or enter details manually.');
+      showToast(translations.registration.panExtractionFailed);
     } finally {
       setLoading(false);
     }
@@ -120,7 +122,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
   const handleFormSubmit = (formData) => {
     // Verify age is at least 18
     if (parseInt(formData.age, 10) < 18) {
-      showToast('You must be at least 18 years old to register', 'error');
+      showToast(translations.registration.ageRestriction, 'error');
       return;
     }
     
@@ -131,7 +133,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
   // Handle password setup
   const handlePasswordSetup = (password, isStrong) => {
     if (!isStrong) {
-      showToast('Please choose a stronger password that meets all the requirements', 'error');
+      showToast(translations.registration.weakPasswordError, 'error');
       return;
     }
     
@@ -162,11 +164,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
           onClose();
         }, 2000);
       } else {
-        throw new Error(response.message || 'Registration failed');
+        throw new Error(response.message || translations.registration.registrationFailed);
       }
     } catch (error) {
       console.error('Registration error:', error);
-      let errorMessage = 'Registration failed. Please try again.';
+      let errorMessage = translations.registration.registrationFailed;
       
       if (error.data && error.data.message) {
         errorMessage = error.data.message;
@@ -204,13 +206,13 @@ const RegisterModal = ({ isOpen, onClose }) => {
             className="absolute top-4 left-4 text-white/70 hover:text-white transition-colors z-10 flex items-center"
           >
             <ArrowLeft className="w-5 h-5 mr-1" />
-            <span className="text-sm">Back</span>
+            <span className="text-sm">{translations.registration.back}</span>
           </button>
         )}
 
         {/* Title bar */}
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-8 py-5">
-          <h2 className="text-2xl font-bold text-white">Create Your Account</h2>
+          <h2 className="text-2xl font-bold text-white">{translations.registration.title}</h2>
           <div className="flex items-center mt-2">
             {[1, 2, 3, 4].map((i) => (
               <React.Fragment key={i}>
@@ -218,7 +220,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
                     ${step >= i ? 'bg-white text-emerald-600' : 'bg-white/30 text-white'}`}
                 >
-                  {i}
+                  {translations.registration.steps[i-1]}
                 </div>
                 {i < 4 && (
                   <div 
@@ -270,12 +272,13 @@ const RegisterModal = ({ isOpen, onClose }) => {
               >
                 <CheckCircle className="w-24 h-24 text-emerald-400 mb-6" />
               </motion.div>
-              <h3 className="text-2xl font-bold text-white mb-4">Registration Successful!</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">{translations.registration.successTitle}</h3>
               <p className="text-gray-400 text-center">
-                Your account has been created successfully with<br />an initial balance of <span className="text-emerald-400 font-semibold">₹1,50,000</span>
+                {translations.registration.successMessage}<br />
+                <span className="text-emerald-400 font-semibold">{translations.registration.amount}</span>
               </p>
               <p className="text-white/60 text-center mt-6">
-                You can now login with your credentials.
+                {translations.registration.loginPrompt}
               </p>
             </div>
           )}

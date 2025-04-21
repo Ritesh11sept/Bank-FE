@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./navbar";
 import AccountOverview from "../Landing Page/AccountOverview";
@@ -7,12 +7,28 @@ import QuickTransfer from "../Landing Page/QuickTransfer";
 import RecentTransactions from "../Landing Page/RecentTransactions";
 import FinancialTips from "../Landing Page/FinancialTips";
 import { useGetUserProfileQuery } from "../../state/api";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const Landing = () => {
   const { data: profileData, refetch: refetchProfile, isLoading: profileLoading } = useGetUserProfileQuery();
   const [balance, setBalance] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [tokenAvailable, setTokenAvailable] = useState(false);
+  
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      landing: {
+        loading: "Loading your dashboard...",
+        authRequired: "Authentication Required",
+        loginPrompt: "Please log in to access your dashboard. No authentication token was found.",
+        goToLogin: "Go to Login"
+      }
+    } 
+  };
+  
+  const { landing } = translations;
   
   // Check if token is available
   useEffect(() => {
@@ -43,7 +59,7 @@ const Landing = () => {
       <div className="flex min-h-screen bg-gray-50 justify-center items-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600">{landing.loading}</p>
         </div>
       </div>
     );
@@ -54,15 +70,15 @@ const Landing = () => {
       <div className="flex min-h-screen bg-gray-50 justify-center items-center">
         <div className="text-center p-8 max-w-md bg-white rounded-lg shadow-lg">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Authentication Required</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">{landing.authRequired}</h2>
           <p className="text-gray-600 mb-6">
-            Please log in to access your dashboard. No authentication token was found.
+            {landing.loginPrompt}
           </p>
           <button 
             onClick={() => window.location.href = '/login'} 
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
           >
-            Go to Login
+            {landing.goToLogin}
           </button>
         </div>
       </div>

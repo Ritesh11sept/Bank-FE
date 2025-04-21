@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { motion } from "framer-motion";
 import BoxHeader from "./BoxHeader";
 import { useGetUserTransactionsQuery } from "../../state/api";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -26,22 +27,21 @@ const Row2 = ({ data }) => {
   const [processedData, setProcessedData] = useState(null);
   const { data: userTransactions, isLoading } = useGetUserTransactionsQuery();
   const userId = localStorage.getItem('userId');
+  
+  // Get translations
+  const { translations, language } = useContext(TranslationContext2) || { translations: {}, language: 'english' };
+  const t = translations.analytics?.[language] || translations.analytics?.english || {};
 
   // Process transactions to get financial data
   useEffect(() => {
     if (userTransactions) {
-      // Check the structure of userTransactions and extract the transactions array
       const transactions = Array.isArray(userTransactions) 
         ? userTransactions 
         : userTransactions.transactions || [];
       
-      console.log('Processing transactions for Row2:', transactions);
-      
       if (Array.isArray(transactions)) {
         processTransactions(transactions);
       } else {
-        console.error('Transactions is not an array:', transactions);
-        // Create an empty data structure with defaults
         setProcessedData({
           transactions: [],
           incomeByMonth: {},
@@ -191,10 +191,7 @@ const Row2 = ({ data }) => {
 
   const monthlyExpenses = displayData.expensesByMonthArray?.slice(-6) || [];
   
-  console.log('Monthly expenses data for chart:', monthlyExpenses);
-  
   if (monthlyExpenses.length === 0) {
-    console.log('No expense data found, creating placeholder data');
     const today = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -256,9 +253,9 @@ const Row2 = ({ data }) => {
         style={{ gridArea: "b" }}
       >
         <BoxHeader
-          title="Recent Transactions"
-          subtitle="Your last 5 transactions"
-          sideText="View All"
+          title={t.recentTransactions || "Recent Transactions"}
+          subtitle={t.lastTransactions || "Your last 5 transactions"}
+          sideText={t.viewAll || "View All"}
         />
         <div className="flex-1 overflow-y-auto pr-1">
           {recentTransactions.map((transaction, index) => (
@@ -304,8 +301,8 @@ const Row2 = ({ data }) => {
         style={{ gridArea: "d" }}
       >
         <BoxHeader
-          title="Category Analysis"
-          subtitle="Spending across categories"
+          title={t.categoryAnalysis || "Category Analysis"}
+          subtitle={t.spendingAcrossCategories || "Spending across categories"}
         />
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -337,10 +334,10 @@ const Row2 = ({ data }) => {
         style={{ gridArea: "f" }}
       >
         <BoxHeader
-          title="Monthly Expenses"
+          title={t.monthlyExpenses || "Monthly Expenses"}
           subtitle={monthlyExpenses.some(e => e.value > 0) ? 
-            "Bar chart showing money sent each month" : 
-            "No expense data available yet"}
+            t.barChartMonthly || "Bar chart showing money sent each month" : 
+            t.noExpenseData || "No expense data available yet"}
           sideText={formatINR(displayData.totalExpenses)}
         />
         <div className="flex-1 w-full min-h-0">
@@ -410,8 +407,8 @@ const Row2 = ({ data }) => {
         style={{ gridArea: "g" }}
       >
         <BoxHeader
-          title="Spending Patterns"
-          subtitle="Daily expense distribution"
+          title={t.spendingPatterns || "Spending Patterns"}
+          subtitle={t.dailyExpenseDistribution || "Daily expense distribution"}
         />
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">

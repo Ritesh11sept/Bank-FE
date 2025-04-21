@@ -1,12 +1,26 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle, FaLock, FaIdCard, FaBell, FaTimes, FaChevronDown, FaCheck, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 import { useGetUserProfileQuery } from "../../state/api";
 import { format } from 'date-fns';
+import { TranslationContext2 } from '../../context/TranslationContext2';
 
 const Settings = ({ onClose }) => {
   const [activeSection, setActiveSection] = useState(null);
   const modalRef = useRef(null);
+  
+  // Get translations
+  const translationContext = useContext(TranslationContext2);
+  const { translations } = translationContext || { 
+    translations: { 
+      settings: {
+        title: "Settings",
+        // ...fallback translations if needed
+      }
+    } 
+  };
+  
+  const { settings: t } = translations;
   
   // Fetch user profile data
   const { data: profileData, isLoading, isError } = useGetUserProfileQuery();
@@ -161,7 +175,7 @@ const Settings = ({ onClose }) => {
         className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto settings-scrollbar"
       >
         <div className="sticky top-0 z-10 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">Settings</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{t.title}</h2>
           <button 
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -172,45 +186,49 @@ const Settings = ({ onClose }) => {
         
         <div className="p-6">
           <SettingSection 
-            title="Account Settings" 
+            title={t.account.title} 
             icon={<FaUserCircle className="w-5 h-5" />} 
             section="account"
           >
             <div className="space-y-1">
-              {userData?.name && <InfoRow label="Full Name" value={userData.name} />}
-              {userData?.email && <InfoRow label="Email" value={userData.email} />}
-              {userData?.phone && <InfoRow label="Phone Number" value={userData.phone} />}
-              {userData?.pan && <InfoRow label="PAN Number" value={userData.pan} />}
-              {userData?.dateOfBirth && <InfoRow label="Date of Birth" value={formatDate(userData.dateOfBirth)} />}
-              {userData?.age && <InfoRow label="Age" value={userData.age} />}
-              {userData?.createdAt && <InfoRow label="Account Created" value={formatDate(userData.createdAt)} />}
+              {userData?.name && <InfoRow label={t.account.fullName} value={userData.name} />}
+              {userData?.email && <InfoRow label={t.account.email} value={userData.email} />}
+              {userData?.phone && <InfoRow label={t.account.phone} value={userData.phone} />}
+              {userData?.pan && <InfoRow label={t.account.panNumber} value={userData.pan} />}
+              {userData?.dateOfBirth && <InfoRow label={t.account.dateOfBirth} value={formatDate(userData.dateOfBirth)} />}
+              {userData?.age && <InfoRow label={t.account.age} value={userData.age} />}
+              {userData?.createdAt && <InfoRow label={t.account.accountCreated} value={formatDate(userData.createdAt)} />}
               
               <div className="mt-4 pt-2 border-t border-gray-200">
                 <button className="px-4 py-2 text-sm bg-emerald-50 text-emerald-600 rounded-lg font-medium hover:bg-emerald-100 transition-colors">
-                  Edit Profile Information
+                  {t.account.editProfile}
                 </button>
               </div>
             </div>
           </SettingSection>
           
           <SettingSection 
-            title="Security" 
+            title={t.security.title} 
             icon={<FaLock className="w-5 h-5" />} 
             section="security"
           >
             <div className="space-y-3">
-              <InfoRow label="Two-factor Authentication" value={userSettings.twoFactorAuth ? "Enabled" : "Disabled"} highlight={userSettings.twoFactorAuth} />
+              <InfoRow 
+                label={t.security.twoFactorAuthentication} 
+                value={userSettings.twoFactorAuth ? t.security.enabled : t.security.disabled} 
+                highlight={userSettings.twoFactorAuth} 
+              />
               
               <div className="space-y-2 mt-3">
                 <ToggleSwitch 
                   isOn={userSettings.twoFactorAuth} 
                   onToggle={() => setUserSettings({...userSettings, twoFactorAuth: !userSettings.twoFactorAuth})} 
-                  label="Two-factor Authentication" 
+                  label={t.security.twoFactorAuthentication} 
                 />
                 
                 <div className="pt-3 border-t border-gray-200">
                   <button className="px-4 py-2 text-sm bg-emerald-50 text-emerald-600 rounded-lg font-medium hover:bg-emerald-100 transition-colors">
-                    Change Password
+                    {t.security.changePassword}
                   </button>
                 </div>
                 
@@ -222,7 +240,7 @@ const Settings = ({ onClose }) => {
                       window.location.href = '/login';
                     }}
                   >
-                    Logout from All Devices
+                    {t.security.logoutAllDevices}
                   </button>
                 </div>
               </div>
@@ -230,24 +248,24 @@ const Settings = ({ onClose }) => {
           </SettingSection>
           
           <SettingSection 
-            title="Verification" 
+            title={t.verification.title} 
             icon={<FaIdCard className="w-5 h-5" />} 
             section="verification"
           >
             <div className="space-y-3">
-              <InfoRow label="Account Status" value="Active" highlight={true} />
-              <InfoRow label="KYC Status" value="Verified" highlight={true} />
-              {userData?.pan && <InfoRow label="PAN Number" value={userData.pan} />}
+              <InfoRow label={t.verification.accountStatus} value={t.verification.active} highlight={true} />
+              <InfoRow label={t.verification.kycStatus} value={t.verification.verified} highlight={true} />
+              {userData?.pan && <InfoRow label={t.account.panNumber} value={userData.pan} />}
               
               <div className="flex items-center mt-3 p-3 bg-green-50 rounded-lg">
                 <FaCheck className="text-green-500 mr-2" />
-                <span className="text-green-700 text-sm">Your account is fully verified</span>
+                <span className="text-green-700 text-sm">{t.verification.fullyVerified}</span>
               </div>
             </div>
           </SettingSection>
           
           <SettingSection 
-            title="Linked Accounts" 
+            title={t.linkedAccounts.title} 
             icon={<FaIdCard className="w-5 h-5" />} 
             section="linkedAccounts"
           >
@@ -257,23 +275,23 @@ const Settings = ({ onClose }) => {
                   <div key={index} className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-medium text-gray-800">{account.bankName}</span>
-                      {index === 0 && <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Primary</span>}
+                      {index === 0 && <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">{t.linkedAccounts.primary}</span>}
                     </div>
-                    <InfoRow label="Account Number" value={account.accountNumber} />
-                    <InfoRow label="IFSC Code" value={account.ifscCode} />
-                    <InfoRow label="Balance" value={`₹${account.balance.toLocaleString()}`} highlight={true} />
+                    <InfoRow label={t.linkedAccounts.accountNumber} value={account.accountNumber} />
+                    <InfoRow label={t.linkedAccounts.ifscCode} value={account.ifscCode} />
+                    <InfoRow label={t.linkedAccounts.balance} value={`₹${account.balance.toLocaleString()}`} highlight={true} />
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-4 text-gray-500">
-                No linked accounts found
+                {t.linkedAccounts.noLinkedAccounts}
               </div>
             )}
           </SettingSection>
           
           <SettingSection 
-            title="Notifications" 
+            title={t.notifications.title} 
             icon={<FaBell className="w-5 h-5" />} 
             section="notifications"
           >
@@ -281,22 +299,22 @@ const Settings = ({ onClose }) => {
               <ToggleSwitch 
                 isOn={userSettings.loginAlerts} 
                 onToggle={() => setUserSettings({...userSettings, loginAlerts: !userSettings.loginAlerts})} 
-                label="Login Alerts" 
+                label={t.notifications.loginAlerts} 
               />
               <ToggleSwitch 
                 isOn={userSettings.transactionAlerts} 
                 onToggle={() => setUserSettings({...userSettings, transactionAlerts: !userSettings.transactionAlerts})} 
-                label="Transaction Alerts" 
+                label={t.notifications.transactionAlerts} 
               />
               <ToggleSwitch 
                 isOn={userSettings.promotionalAlerts} 
                 onToggle={() => setUserSettings({...userSettings, promotionalAlerts: !userSettings.promotionalAlerts})} 
-                label="Promotional Notifications" 
+                label={t.notifications.promotionalNotifications} 
               />
               
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <button className="px-4 py-2 text-sm bg-emerald-50 text-emerald-600 rounded-lg font-medium hover:bg-emerald-100 transition-colors">
-                  Manage Email Preferences
+                  {t.notifications.manageEmailPreferences}
                 </button>
               </div>
             </div>

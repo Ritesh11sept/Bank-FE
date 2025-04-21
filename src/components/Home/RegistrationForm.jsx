@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Mail, User, Phone, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../context/TranslationContext';
 
 const RegistrationForm = ({ initialData, onSubmit }) => {
+  const { translations } = useTranslation();
   const [formData, setFormData] = useState({
     name: initialData.name || '',
     email: initialData.email || '',
@@ -42,16 +44,16 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
     
     // Validate form
     const newErrors = {};
-    if (!formData.name) newErrors.name = 'Name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = 'Invalid email format';
-    if (!formData.phone) newErrors.phone = 'Phone number is required';
-    else if (!/^[0-9]{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
-    if (!formData.pan) newErrors.pan = 'PAN is required';
-    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan)) newErrors.pan = 'Invalid PAN format';
-    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-    if (!formData.age) newErrors.age = 'Age is required';
-    else if (parseInt(formData.age, 10) < 18) newErrors.age = 'You must be at least 18 years old';
+    if (!formData.name) newErrors.name = translations.registrationForm.nameRequired;
+    if (!formData.email) newErrors.email = translations.registrationForm.emailRequired;
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = translations.registrationForm.emailInvalid;
+    if (!formData.phone) newErrors.phone = translations.registrationForm.phoneRequired;
+    else if (!/^[0-9]{10}$/.test(formData.phone)) newErrors.phone = translations.registrationForm.phoneInvalid;
+    if (!formData.pan) newErrors.pan = translations.registrationForm.panRequired;
+    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan)) newErrors.pan = translations.registrationForm.panInvalid;
+    if (!formData.dateOfBirth) newErrors.dateOfBirth = translations.registrationForm.dobRequired;
+    if (!formData.age) newErrors.age = translations.registrationForm.ageRequired;
+    else if (parseInt(formData.age, 10) < 18) newErrors.age = translations.registrationForm.ageMinimum;
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -68,15 +70,15 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <h3 className="text-2xl font-bold text-white mb-2">Personal Information</h3>
-      <p className="text-gray-400 mb-6">Fill in your details to create your account</p>
+      <h3 className="text-2xl font-bold text-white mb-2">{translations.registrationForm.title}</h3>
+      <p className="text-gray-400 mb-6">{translations.registrationForm.description}</p>
       
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <User className="w-4 h-4 mr-2" />
-              Full Name
+              {translations.registrationForm.fullName}
             </label>
             <input
               type="text"
@@ -84,7 +86,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
               value={formData.name}
               onChange={handleChange}
               className={`w-full p-3 bg-white/10 border ${errors.name ? 'border-red-500' : 'border-white/20'} rounded-lg text-white focus:outline-none focus:border-emerald-400`}
-              placeholder="Enter your full name"
+              placeholder={translations.registrationForm.namePlaceholder}
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
@@ -92,7 +94,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <Mail className="w-4 h-4 mr-2" />
-              Email Address
+              {translations.registrationForm.email}
             </label>
             <input
               type="email"
@@ -100,7 +102,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
               value={formData.email}
               onChange={handleChange}
               className={`w-full p-3 bg-white/10 border ${errors.email ? 'border-red-500' : 'border-white/20'} rounded-lg text-white focus:outline-none focus:border-emerald-400`}
-              placeholder="Enter your email"
+              placeholder={translations.registrationForm.emailPlaceholder}
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
@@ -110,7 +112,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <Phone className="w-4 h-4 mr-2" />
-              Phone Number
+              {translations.registrationForm.phone}
             </label>
             <div className="flex">
               <span className="bg-white/10 border border-white/20 border-r-0 rounded-l-lg p-3 text-white/60">+91</span>
@@ -120,7 +122,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
                 value={formData.phone}
                 onChange={handleChange}
                 className={`w-full p-3 bg-white/10 border ${errors.phone ? 'border-red-500' : 'border-white/20'} rounded-r-lg text-white focus:outline-none focus:border-emerald-400`}
-                placeholder="10-digit phone number"
+                placeholder={translations.registrationForm.phonePlaceholder}
                 maxLength={10}
               />
             </div>
@@ -130,7 +132,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <CreditCard className="w-4 h-4 mr-2" />
-              PAN Number
+              {translations.registrationForm.pan}
             </label>
             <input
               type="text"
@@ -138,7 +140,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
               value={formData.pan}
               onChange={handleChange}
               className={`w-full p-3 bg-white/10 border ${errors.pan ? 'border-red-500' : 'border-white/20'} rounded-lg text-white focus:outline-none focus:border-emerald-400`}
-              placeholder="e.g., ABCDE1234F"
+              placeholder={translations.registrationForm.panPlaceholder}
               maxLength={10}
               style={{ textTransform: 'uppercase' }}
             />
@@ -150,7 +152,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <Calendar className="w-4 h-4 mr-2" />
-              Date of Birth
+              {translations.registrationForm.dob}
             </label>
             <input
               type="date"
@@ -166,7 +168,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           <div>
             <label className="flex items-center text-white mb-1.5 text-sm">
               <User className="w-4 h-4 mr-2" />
-              Age
+              {translations.registrationForm.age}
             </label>
             <input
               type="number"
@@ -174,7 +176,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
               value={formData.age}
               onChange={handleChange}
               className={`w-full p-3 bg-white/10 border ${errors.age ? 'border-red-500' : 'border-white/20'} rounded-lg text-white focus:outline-none focus:border-emerald-400`}
-              placeholder="Your age"
+              placeholder={translations.registrationForm.agePlaceholder}
               min="18"
               max="120"
               readOnly // Make this readonly since it's calculated from DOB
@@ -189,7 +191,7 @@ const RegistrationForm = ({ initialData, onSubmit }) => {
           whileTap={{ scale: 0.98 }}
           className="w-full py-3.5 mt-6 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg"
         >
-          Continue to Set Password
+          {translations.registrationForm.continueButton}
         </motion.button>
       </form>
     </motion.div>

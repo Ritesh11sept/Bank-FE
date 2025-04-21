@@ -5,12 +5,29 @@ import {
   FiChevronLeft, FiChevronRight, FiDownload, FiCheck
 } from "react-icons/fi";
 
-const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDisplay }) => {
+const TransactionModal = ({ 
+  transactions, 
+  onClose, 
+  formatDate, 
+  getTransactionDisplay, 
+  currentUserId,
+  translations 
+}) => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const modalRef = useRef(null);
   const transactionsPerPage = 10;
+
+  // Use translations or provide fallbacks if not passed
+  const t = translations || {
+    title: "All Transactions",
+    all: "All",
+    incoming: "Incoming",
+    outgoing: "Outgoing",
+    noTransactionsYet: "No transactions found",
+    noTransactionsDescription: "Try changing your filter settings"
+  };
   
   // Close on outside click
   useEffect(() => {
@@ -40,7 +57,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
   const filteredTransactions = transactions.filter(transaction => {
     // Apply type filter
     if (filter !== "all") {
-      const userId = localStorage.getItem('userId');
+      const userId = currentUserId || localStorage.getItem('userId');
       const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
       const senderId = String(transaction.senderId?.$oid || transaction.senderId);
       
@@ -91,7 +108,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
     let csvContent = "Date,Type,Amount,From,To,Note,Status\n";
     
     filteredTransactions.forEach(transaction => {
-      const userId = localStorage.getItem('userId');
+      const userId = currentUserId || localStorage.getItem('userId');
       const receiverId = String(transaction.receiverId?.$oid || transaction.receiverId);
       const isIncoming = receiverId === userId;
       
@@ -137,7 +154,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Transaction History</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -158,7 +175,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              All
+              {t.all}
             </button>
             <button
               onClick={() => setFilter("incoming")}
@@ -168,7 +185,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
                   : "bg-green-50 text-green-700 hover:bg-green-100"
               }`}
             >
-              <FiArrowDown className="inline mr-1" size={14} /> Incoming
+              <FiArrowDown className="inline mr-1" size={14} /> {t.incoming}
             </button>
             <button
               onClick={() => setFilter("outgoing")}
@@ -178,7 +195,7 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
                   : "bg-red-50 text-red-700 hover:bg-red-100"
               }`}
             >
-              <FiArrowUp className="inline mr-1" size={14} /> Outgoing
+              <FiArrowUp className="inline mr-1" size={14} /> {t.outgoing}
             </button>
           </div>
           
@@ -208,8 +225,8 @@ const TransactionModal = ({ transactions, onClose, formatDate, getTransactionDis
               <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
                 <FiFilter className="text-gray-400 w-8 h-8" />
               </div>
-              <h3 className="text-lg font-medium text-gray-700 mb-1">No transactions found</h3>
-              <p className="text-gray-500">Try changing your filters or search terms</p>
+              <h3 className="text-lg font-medium text-gray-700 mb-1">{t.noTransactionsYet}</h3>
+              <p className="text-gray-500">{t.noTransactionsDescription}</p>
             </div>
           ) : (
             <table className="w-full">

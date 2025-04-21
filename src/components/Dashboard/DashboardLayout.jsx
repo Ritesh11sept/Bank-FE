@@ -1,13 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./navbar";
 import Chatbot from "../../chatbot";
 import { MessageSquare } from "lucide-react";
+import { TranslationContext2 } from "../../context/TranslationContext2";
 
 const DashboardLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [animateButton, setAnimateButton] = useState(false);
+  
+  // Get translations with fallback
+  const { translations, language } = useContext(TranslationContext2) || { 
+    translations: {}, 
+    language: 'english' 
+  };
+
+  // Fix: Safely access translations with fallbacks
+  const dashboardTranslations = (translations?.dashboard && translations.dashboard[language]) 
+    || (translations?.dashboard && translations.dashboard.english) 
+    || {};
+    
+  // Fix: Create safe reference to layout or provide fallback
+  const layoutText = dashboardTranslations.layout || { openChat: "Open chat assistant" };
   
   useEffect(() => {
     // Start animation after a delay
@@ -31,14 +46,14 @@ const DashboardLayout = ({ children }) => {
           {children}
         </div>
         
-        {/* Chatbot button */}
+        {/* Chatbot button - Fix: Safely access openChat property */}
         {!showChatbot && (
           <button 
             onClick={toggleChatbot}
             className={`fixed bottom-6 right-6 w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center z-50 ${
               animateButton ? 'animate-bounce-subtle animate-pulse-glow' : ''
             }`}
-            aria-label="Open chat assistant"
+            aria-label={layoutText.openChat}
           >
             <MessageSquare className="w-6 h-6" />
           </button>
