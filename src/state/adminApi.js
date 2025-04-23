@@ -1,6 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { API_BASE_URL } from '../config/apiConfig';
 
+// Define a safe invalidation helper function
+const safeInvalidatesTags = (tags) => {
+  // Ensure we always return a valid array of tag objects
+  return Array.isArray(tags) ? tags.map(tag => 
+    typeof tag === 'string' ? { type: tag } : tag
+  ) : [];
+};
+
 export const adminApi = createApi({
   baseQuery: fetchBaseQuery({ 
     baseUrl: API_BASE_URL,
@@ -28,6 +36,7 @@ export const adminApi = createApi({
         method: 'POST',
         body: credentials,
       }),
+      invalidatesTags: safeInvalidatesTags([]),
     }),
     getUsers: build.query({
       query: () => ({
@@ -57,7 +66,7 @@ export const adminApi = createApi({
         method: "PUT",
         body: { status },
       }),
-      invalidatesTags: ["AdminUsers", "AdminStats"],
+      invalidatesTags: safeInvalidatesTags(["AdminUsers", "AdminStats"]),
     }),
     
     getTransactions: build.query({
@@ -251,7 +260,7 @@ export const adminApi = createApi({
         method: 'PATCH',
         body: { status },
       }),
-      invalidatesTags: ["AdminTickets"],
+      invalidatesTags: safeInvalidatesTags(["AdminTickets"]),
     }),
 
     replyToTicket: build.mutation({
@@ -260,7 +269,7 @@ export const adminApi = createApi({
         method: 'POST',
         body: { content: message },
       }),
-      invalidatesTags: ["AdminTickets"],
+      invalidatesTags: safeInvalidatesTags(["AdminTickets"]),
     }),
     
     getAdminStats: build.query({

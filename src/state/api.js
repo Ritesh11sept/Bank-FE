@@ -1,6 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { API_BASE_URL } from '../config/apiConfig';
 
+// Define a safe invalidation helper function
+const safeInvalidatesTags = (tags) => {
+  // Ensure we always return a valid array of tag objects
+  return Array.isArray(tags) ? tags.map(tag => 
+    typeof tag === 'string' ? { type: tag } : tag
+  ) : [];
+};
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ 
     baseUrl: API_BASE_URL,
@@ -45,7 +53,7 @@ export const api = createApi({
         method: "POST",
         body: pot,
       }),
-      invalidatesTags: ["Pots"],
+      invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
     depositToPot: build.mutation({
@@ -54,7 +62,7 @@ export const api = createApi({
         method: "POST",
         body: { amount },
       }),
-      invalidatesTags: ["Pots"],
+      invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
     withdrawFromPot: build.mutation({
@@ -63,7 +71,7 @@ export const api = createApi({
         method: "POST",
         body: { amount },
       }),
-      invalidatesTags: ["Pots"],
+      invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
     updatePotGoal: build.mutation({
@@ -72,7 +80,7 @@ export const api = createApi({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["Pots"],
+      invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
     deletePot: build.mutation({
@@ -80,7 +88,7 @@ export const api = createApi({
         url: `pots/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Pots"],
+      invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
     registerUser: build.mutation({
@@ -92,7 +100,7 @@ export const api = createApi({
           body: userData,
         };
       },
-      invalidatesTags: ["User"],
+      invalidatesTags: safeInvalidatesTags(["User"]),
     }),
 
     verifyOTP: build.mutation({
@@ -121,6 +129,7 @@ export const api = createApi({
           body: credentials,
         };
       },
+      invalidatesTags: safeInvalidatesTags([]),
     }),
 
     getLinkedAccounts: build.mutation({
@@ -154,7 +163,7 @@ export const api = createApi({
         url: "rewards/login-streak",
         method: "POST",
       }),
-      invalidatesTags: ["Rewards", "User"],
+      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
     revealScratchCard: build.mutation({
@@ -162,7 +171,7 @@ export const api = createApi({
         url: `rewards/scratch-card/${cardId}`,
         method: "POST",
       }),
-      invalidatesTags: ["Rewards", "User"],
+      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
     submitGameScore: build.mutation({
@@ -171,7 +180,7 @@ export const api = createApi({
         method: "POST",
         body: scoreData,
       }),
-      invalidatesTags: ["Rewards", "User"],
+      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
     getNotifications: build.query({
@@ -189,7 +198,7 @@ export const api = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Notifications"],
+      invalidatesTags: safeInvalidatesTags(["Notifications"]),
     }),
 
     getPotReward: build.mutation({
@@ -198,7 +207,7 @@ export const api = createApi({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Rewards", "User"],
+      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
     transferMoney: build.mutation({
@@ -207,7 +216,7 @@ export const api = createApi({
         method: "POST",
         body: transferData,
       }),
-      invalidatesTags: ["User", "Transactions"],
+      invalidatesTags: safeInvalidatesTags(["User", "Transactions"]),
     }),
 
     getUserTransactions: build.query({
@@ -254,10 +263,10 @@ export const api = createApi({
 
     getUserDetails: build.query({
       query: (userId) => `admin/users/${userId}`,
-      providesTags: (result, error, id) => [
+      providesTags: (result, error, id) => safeInvalidatesTags([
         { type: "AdminData", id },
         { type: "User", id }
-      ],
+      ]),
     }),
 
     getSystemStats: build.query({
@@ -291,11 +300,11 @@ export const api = createApi({
         method: "PUT",
         body: { status },
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (result, error, arg) => safeInvalidatesTags([
         "AdminData",
         "Users",
         { type: "User", id: arg.userId }
-      ],
+      ]),
     }),
 
     addSystemAlert: build.mutation({
@@ -304,7 +313,7 @@ export const api = createApi({
         method: "POST",
         body: alertData,
       }),
-      invalidatesTags: ["AdminData"],
+      invalidatesTags: safeInvalidatesTags(["AdminData"]),
     }),
 
     getDetailedTransactions: build.query({
