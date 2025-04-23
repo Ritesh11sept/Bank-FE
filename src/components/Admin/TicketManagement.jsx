@@ -39,14 +39,48 @@ const TicketManagement = ({ tickets, updateTicketStatus, replyToTicket, isLoadin
     
     try {
       setIsSubmitting(true);
-      await replyToTicket({
+      console.log('Sending reply to ticket:', selectedTicket.id, 'Content:', replyText);
+      
+      // Ensure admin token is in localStorage before replying
+      const adminToken = localStorage.getItem('adminToken');
+      if (!adminToken) {
+        console.error('No admin token found in localStorage');
+        // You might want to handle this case, e.g., by showing an error message
+      } else {
+        console.log('Admin token found, length:', adminToken.length);
+      }
+      
+      const result = await replyToTicket({
         ticketId: selectedTicket.id || selectedTicket._id,
         message: replyText
       }).unwrap();
       
+      console.log('Reply sent successfully:', result);
       setReplyText('');
+      
+      // Add the new message to the UI immediately for better UX
+      if (!Array.isArray(selectedTicket.messages)) {
+        selectedTicket.messages = [];
+      }
+      
+      // Create a temporary message object until the data is refreshed
+      const tempMessage = {
+        id: 'temp-' + Date.now(),
+        content: replyText,
+        isAdmin: true,
+        userId: 'admin-user',
+        createdAt: new Date().toISOString()
+      };
+      
+      setSelectedTicket({
+        ...selectedTicket,
+        messages: [...selectedTicket.messages, tempMessage]
+      });
+      
     } catch (error) {
       console.error("Failed to reply to ticket:", error);
+      // Display an error message to the user
+      alert("Failed to send reply. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -438,7 +472,35 @@ const TicketManagement = ({ tickets, updateTicketStatus, replyToTicket, isLoadin
                 </div>
               </div>
               
-              
+              {/* Display conversation thread */}
+              <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Conversation</h4>
+                <div className="space-y-4">
+                  {selectedTicket.messages && selectedTicket.messages.map((message, index) => (
+                    <div 
+                      key={message.id || index} 
+                      className={`flex ${message.isAdmin ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div 
+                        className={`max-w-[75%] rounded-lg p-3 ${
+                          message.isAdmin 
+                            ? 'bg-purple-100 text-purple-900' 
+                            : 'bg-gray-200 text-gray-800'
+                        }`}
+                      >
+                        <div className="text-sm">{message.content}</div>
+                        <div className="text-xs mt-1 text-gray-500 flex justify-between items-center">
+                          <span>{message.isAdmin ? 'Support Team' : 'Customer'}</span>
+                          <span>{message.createdAt 
+                            ? formatTimeSince(message.createdAt) 
+                            : ''}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
               <div className="bg-gray-100 px-4 py-3 border-t border-gray-200">
                 <div className="mb-2">

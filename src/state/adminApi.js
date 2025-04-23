@@ -11,21 +11,40 @@ const baseQueryWithAuth = fetchBaseQuery({
   prepareHeaders: (headers) => {
     const token = localStorage.getItem('adminToken');
     if (token) {
-      // Ensure Bearer prefix
+      // Ensure Bearer prefix for admin token
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       headers.set('authorization', authToken);
+      console.log('Setting admin auth header:', authToken);
     }
     headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
     return headers;
   },
-  credentials: 'include'
 });
 
-// Enhanced base query with retry logic
+// Enhanced base query with retry logic and better error handling
 const baseQueryWithRetry = async (args, api, extraOptions) => {
   try {
+    // Log the endpoint being called for debugging
+    console.log('Calling API endpoint:', args.url);
+    
     const result = await baseQueryWithAuth(args, api, extraOptions);
+    
+    // Log the response status for debugging
+    console.log('API response status:', result?.meta?.response?.status);
+    
+    if (result.error) {
+      console.error('API error:', result.error);
+      
+      // Check for auth errors that might need token refresh
+      if (result.error.status === 401 || result.error.status === 403) {
+        // If this is an auth-related failure, log more details
+        console.error('Auth error details:', result.error);
+        
+        // Could implement token refresh logic here if needed
+      }
+    }
+    
     return result;
   } catch (error) {
     console.error('Query error:', error);
@@ -211,7 +230,6 @@ export const adminApi = createApi({
       query: () => ({
         url: "pots",
         method: 'GET',
-        credentials: 'include',
       }),
       providesTags: ["PotStats"],
       transformResponse: (response) => {
@@ -311,10 +329,69 @@ export const adminApi = createApi({
         url: `tickets/${ticketId}/messages`,
         method: 'POST',
         body: { content: message },
+        // Make sure to include response body logging for debugging
+        responseHandler: (response) => {
+          console.log('Ticket reply response status:', response.status);
+          
+          // For non-JSON responses or errors, handle them gracefully
+          return response.text().then(text => {
+            if (!text) return {};
+            
+            try {
+              return JSON.parse(text);
+            } catch (e) {
+              console.error('Error parsing response:', e);
+              return { content: message, error: true, rawResponse: text };
+            }
+          });
+        },
+        // Add error handling with more detailed logging
+        validateStatus: (response, result) => {
+          console.log('Validation status:', response.status, 'Response:', result);
+          // Accept 2xx status codes as success
+          return response.status >= 200 && response.status < 300;
+        },
       }),
-      invalidatesTags: ["AdminTickets"],
+      // Ensure invalidation of the correct tags
+      invalidatesTags: (result, error, { ticketId }) => {
+        console.log('Invalidating tags for ticket:', ticketId);
+        return [
+          "AdminTickets", 
+          { type: "AdminTickets", id: ticketId }
+        ];
+      },
+      // Transform the response to ensure consistent format even with errors
+      transformResponse: (response, meta, arg) => {
+        if (response?.error) {
+          console.log('Transforming error response:', response);
+          // Return a standardized message object even for errors
+          return {
+            id: `temp-${Date.now()}`,
+            content: arg.message,
+            isAdmin: true,
+            createdAt: new Date().toISOString(),
+            clientSide: true // Flag to indicate this was created client-side
+          };
+        }
+        return response;
+      },
+      // Add error handling for the mutation
+      onError: (error, { ticketId, message }, { rejectWithValue }) => {
+        console.error(`Failed to reply to ticket ${ticketId}:`, error);
+        
+        // Return a formatted response with the message content
+        // This allows the UI to still show the message even if the server request failed
+        return rejectWithValue({
+          id: `temp-${Date.now()}`,
+          content: message,
+          isAdmin: true,
+          createdAt: new Date().toISOString(),
+          error: true,
+          errorMessage: error.message || 'Failed to send message'
+        });
+      }
     }),
-    
+
     getAdminStats: builder.query({
       query: () => ({
         url: "user/admin/stats",
