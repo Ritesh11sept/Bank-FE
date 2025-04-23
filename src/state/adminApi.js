@@ -1,81 +1,35 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-// Token validation helper - Made more lenient
-const isValidToken = (token) => {
-  return token && (token.startsWith('Bearer ') || token.includes('mock-admin-token'));
-};
-
-// Base query with auth handling
-const baseQueryWithAuth = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
-  prepareHeaders: (headers) => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      // Ensure Bearer prefix
-      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-      headers.set('authorization', authToken);
-    }
-    headers.set('Accept', 'application/json');
-    headers.set('Content-Type', 'application/json');
-    return headers;
-  },
-  credentials: 'include'
-});
-
-// Enhanced base query with retry logic
-const baseQueryWithRetry = async (args, api, extraOptions) => {
-  try {
-    const result = await baseQueryWithAuth(args, api, extraOptions);
-    return result;
-  } catch (error) {
-    console.error('Query error:', error);
-    throw error;
-  }
-};
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_BASE_URL } from '../config/apiConfig';
 
 export const adminApi = createApi({
-  reducerPath: "adminApi",
-  baseQuery: baseQueryWithRetry,
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: API_BASE_URL,
+    prepareHeaders: (headers, { getState }) => {
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  reducerPath: 'adminApi',
   tagTypes: [
-    "AdminStats", "AdminUsers", "AdminTransactions", "AdminTickets", 
-    "FlaggedTransactions", "PotStats"
+    'AdminStats',
+    'AdminUsers',
+    'AdminTransactions',
+    'AdminTickets',
+    'FlaggedTransactions',
+    'PotStats',
   ],
-  endpoints: (builder) => ({
-    adminLogin: builder.mutation({
-      async queryFn(credentials, _queryApi, _extraOptions, fetchWithBQ) {
-        // Check for hardcoded admin credentials first
-        if (credentials.username === 'admin' && credentials.password === 'admin123') {
-          const mockResponse = {
-            data: {
-              token: 'Bearer mock-admin-token-' + Date.now(),
-              user: {
-                id: 'admin-1',
-                username: 'admin',
-                role: 'admin',
-              }
-            }
-          };
-
-          // Store admin data in localStorage
-          localStorage.setItem('adminToken', mockResponse.data.token);
-          localStorage.setItem('isAdmin', 'true');
-          localStorage.setItem('adminUser', JSON.stringify(mockResponse.data.user));
-
-          return mockResponse;
-        }
-
-        // If not admin credentials, try real API call
-        const result = await fetchWithBQ({
-          url: 'user/login',
-          method: 'POST',
-          body: credentials,
-        });
-
-        return result;
-      },
+  endpoints: (build) => ({
+    adminLogin: build.mutation({
+      query: (credentials) => ({
+        url: `/user/admin/login`,
+        method: 'POST',
+        body: credentials,
+      }),
     }),
-    
-    getUsers: builder.query({
+    getUsers: build.query({
       query: () => ({
         url: "user/all-users",
         method: 'GET',
@@ -92,12 +46,12 @@ export const adminApi = createApi({
       }
     }),
 
-    getUserById: builder.query({
+    getUserById: build.query({
       query: (userId) => `user/${userId}`,
       providesTags: (result, error, id) => [{ type: "AdminUsers", id }],
     }),
     
-    updateUserStatus: builder.mutation({
+    updateUserStatus: build.mutation({
       query: ({ userId, status }) => ({
         url: `user/${userId}/status`,
         method: "PUT",
@@ -106,14 +60,13 @@ export const adminApi = createApi({
       invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
     
-    getTransactions: builder.query({
+    getTransactions: build.query({
       query: () => ({
         url: "transaction/transactions",
         method: 'GET'
       }),
       transformResponse: (response) => {
         if (!Array.isArray(response)) return [];
-        // Return all transactions sorted by date
         return response.map(tx => ({
           ...tx,
           amount: parseFloat(tx.amount) || 0,
@@ -123,7 +76,7 @@ export const adminApi = createApi({
       providesTags: ["AdminTransactions"],
     }),
     
-    getTransactionStats: builder.query({
+    getTransactionStats: build.query({
       query: () => ({
         url: "transaction/transactions",
         method: 'GET'
@@ -131,7 +84,6 @@ export const adminApi = createApi({
       providesTags: ["AdminTransactions"],
       transformResponse: (response) => {
         if (!Array.isArray(response) || response.length === 0) {
-          // Return default structure for empty response
           return {
             totalTransactions: 0,
             totalVolume: 0,
@@ -145,17 +97,14 @@ export const adminApi = createApi({
           };
         }
 
-        // Process all transactions
         const totalTransactions = response.length;
         const totalVolume = response.reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
 
-        // Calculate last 6 months volume
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const currentDate = new Date();
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(currentDate.getMonth() - 5);
 
-        // Initialize monthly volumes
         const volumeByMonth = response
           .filter(tx => {
             const txDate = new Date(tx.date || tx.createdAt);
@@ -168,7 +117,6 @@ export const adminApi = createApi({
             return acc;
           }, {});
 
-        // Format into required structure
         const formattedVolumeByMonth = monthNames
           .slice(0, 6)
           .map(month => ({
@@ -187,7 +135,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getFlaggedTransactions: builder.query({
+    getFlaggedTransactions: build.query({
       query: () => "transaction/transactions",
       providesTags: ["FlaggedTransactions"],
       transformResponse: (response) => {
@@ -207,7 +155,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getPotStats: builder.query({
+    getPotStats: build.query({
       query: () => ({
         url: "pots",
         method: 'GET',
@@ -255,7 +203,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getTickets: builder.query({
+    getTickets: build.query({
       query: () => ({
         url: "tickets",
         method: 'GET',
@@ -288,8 +236,8 @@ export const adminApi = createApi({
       providesTags: ["AdminTickets"],
     }),
 
-    getTicketById: builder.query({
-      query: (ticketId) => `tickets/${ticketId}`, // Updated path format
+    getTicketById: build.query({
+      query: (ticketId) => `tickets/${ticketId}`,
       providesTags: (result, error, id) => [{ type: "AdminTickets", id }],
       transformErrorResponse: (error) => {
         console.error('Error fetching ticket details:', error);
@@ -297,7 +245,7 @@ export const adminApi = createApi({
       }
     }),
     
-    updateTicketStatus: builder.mutation({
+    updateTicketStatus: build.mutation({
       query: ({ ticketId, status }) => ({
         url: `tickets/${ticketId}/status`,
         method: 'PATCH',
@@ -306,7 +254,7 @@ export const adminApi = createApi({
       invalidatesTags: ["AdminTickets"],
     }),
 
-    replyToTicket: builder.mutation({
+    replyToTicket: build.mutation({
       query: ({ ticketId, message }) => ({
         url: `tickets/${ticketId}/messages`,
         method: 'POST',
@@ -315,7 +263,7 @@ export const adminApi = createApi({
       invalidatesTags: ["AdminTickets"],
     }),
     
-    getAdminStats: builder.query({
+    getAdminStats: build.query({
       query: () => ({
         url: "user/admin/stats",
         method: 'GET',
@@ -327,7 +275,7 @@ export const adminApi = createApi({
       }
     }),
 
-    getAdminDashboardData: builder.query({
+    getAdminDashboardData: build.query({
       query: () => "transaction/transactions",
       providesTags: ["AdminStats", "AdminUsers", "AdminTransactions", "PotStats"],
       transformResponse: (transactions, meta, arg) => {

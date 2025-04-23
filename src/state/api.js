@@ -1,34 +1,26 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_BASE_URL } from '../config/apiConfig';
 
 export const api = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
-    prepareHeaders: (headers, { getState, endpoint }) => {
-      headers.set('Accept', 'application/json');
-      headers.set('Content-Type', 'application/json');
-
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: API_BASE_URL,
+    prepareHeaders: (headers, { getState }) => {
       const token = localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
-
-      if (adminToken && endpoint.startsWith('admin')) {
-        headers.set('Authorization', `Bearer ${adminToken}`);
-        console.log('Using admin token for admin endpoint:', endpoint);
-      } else if (token) {
+      if (token) {
         headers.set('Authorization', `Bearer ${token}`);
-        console.log('Using user token for endpoint:', endpoint);
       }
-
-      console.log('Request Headers:', Object.fromEntries(headers.entries()));
-      console.log('Endpoint:', endpoint);
-
       return headers;
     },
   }),
-  reducerPath: "main",
+  reducerPath: 'adminApi',
   tagTypes: [
-    "Products", "Transactions", "Pots", "User", "Rewards", "Notifications",
-    "AdminData", "SystemStats", "Users", "TransactionStats",
-    "ActiveUsers", "FlaggedTransactions", "PotStats"
+    'User',
+    'Transactions',
+    'Pots',
+    'Stats',
+    'Rewards',
+    'Tickets',
+    'Products',
   ],
   endpoints: (build) => ({
     getProducts: build.query({
@@ -120,12 +112,15 @@ export const api = createApi({
     }),
 
     loginUser: build.mutation({
-      query: (credentials) => ({
-        url: 'user/login',
-        method: 'POST',
-        body: credentials,
-      }),
-      invalidatesTags: ["User"],
+      query: (credentials) => {
+        console.log('Endpoint: loginUser');
+        console.log('Request Headers:', headers => headers);
+        return {
+          url: `/user/login`,
+          method: 'POST',
+          body: credentials,
+        };
+      },
     }),
 
     getLinkedAccounts: build.mutation({
