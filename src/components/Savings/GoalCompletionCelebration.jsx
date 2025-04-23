@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ReactConfetti from 'react-confetti';
-import Lottie from 'react-lottie';
-import successAnimation from '../../assets/success-animation.json';
+import Confetti from 'react-confetti';
+import { motion } from 'framer-motion';
 
-const GoalCompletionCelebration = ({
-  potName,
-  goalAmount,
-  onComplete
-}) => {
+const GoalCompletionCelebration = ({ isVisible, onClose, goalName }) => {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -23,68 +18,67 @@ const GoalCompletionCelebration = ({
 
     window.addEventListener('resize', handleResize);
     
+    // Automatically close the celebration after 5 seconds
     const timer = setTimeout(() => {
-      onComplete?.();
+      if (isVisible) {
+        onClose();
+      }
     }, 5000);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
     };
-  }, [onComplete]);
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-85 z-[9999] flex items-center justify-center"
-    >
-      <ReactConfetti
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <Confetti
         width={windowSize.width}
         height={windowSize.height}
-        numberOfPieces={200}
         recycle={false}
-        gravity={0.2}
+        numberOfPieces={500}
       />
-      
-      <div className="animate-fade-in" style={{animationDuration: '1000ms'}}>
-        <div
-          className="p-8 rounded-2xl text-center max-w-lg mx-2 bg-gradient-to-br from-white to-[#f8fafc] shadow-2xl relative overflow-hidden"
+      <motion.div
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.5, opacity: 0 }}
+        className="bg-white rounded-lg p-6 shadow-2xl relative z-10 max-w-md w-full"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
         >
-          <div
-            className="mb-6 animate-bounce"
+          ✕
+        </button>
+        <div className="text-center">
+          <motion.div
+            initial={{ rotateY: 0 }}
+            animate={{ rotateY: 360 }}
+            transition={{ duration: 1.5 }}
+            className="text-5xl mb-4"
           >
-            <Lottie
-              options={{
-                loop: true,
-                autoplay: true,
-                animationData: successAnimation,
-                rendererSettings: {
-                  preserveAspectRatio: 'xMidYMid slice'
-                }
-              }}
-              height={150}
-              width={150}
-            />
-          </div>
-          
-          <h1
-            className="mb-4 font-bold text-3xl bg-gradient-to-r from-[#10B981] to-[#059669] text-transparent bg-clip-text"
-          >
-            🎉 Congratulations! 🎉
-          </h1>
-          
-          <h2
-            className="mb-6 text-[#0F172A] font-semibold text-xl leading-relaxed"
-          >
-            You've reached your goal of ₹{goalAmount.toLocaleString()} for {potName}!
-          </h2>
-          
-          <p
-            className="text-[#64748B] leading-relaxed"
-          >
-            Keep up the great work! Why not set a new goal to continue your savings journey?
+            🎉
+          </motion.div>
+          <h2 className="text-2xl font-bold text-green-600 mb-2">Congratulations!</h2>
+          <p className="text-lg mb-4">
+            {goalName ? `You've reached your goal for "${goalName}"!` : "You've reached your savings goal!"}
           </p>
+          <p className="text-sm text-gray-600">
+            Keep up the great work with your financial journey!
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClose}
+            className="mt-6 bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-full font-medium"
+          >
+            Continue
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Target, Trash2, X, PiggyBank, TrendingUp, BarChart } from 'lucide-react';
 import { POT_CATEGORIES } from './constants/potCategories';
-import GoalCompletionCelebration from '../savings/GoalCompletionCelebration';
+import GoalCompletionCelebration from './GoalCompletionCelebration';
 import axios from '../../utils/axios';
 import { useGetPotsQuery } from '../../state/api';
 
