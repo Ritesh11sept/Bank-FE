@@ -83,34 +83,21 @@ const LoginModal = ({ open, onClose, onRegister }) => {
         }
       } else {
         console.log('Attempting user login with PAN:', pan);
+        const response = await loginUser({
+          pan,
+          password,
+        }).unwrap();
 
-        // Make the login request with error handling
-        try {
-          const response = await loginUser({
-            pan,
-            password,
-          }).unwrap();
+        console.log('User login successful');
 
-          console.log('User login successful');
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
 
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-
-          setLoginSuccess(true);
-          setTimeout(() => {
-            onClose();
-            navigate('/landing');
-          }, 1500);
-        } catch (apiError) {
-          console.error('API Error details:', apiError);
-          if (apiError.status === 500) {
-            setError('Server error. Please try again later.');
-          } else if (apiError.data && apiError.data.message) {
-            setError(apiError.data.message);
-          } else {
-            setError(translations.login.loginFailed);
-          }
-        }
+        setLoginSuccess(true);
+        setTimeout(() => {
+          onClose();
+          navigate('/landing');
+        }, 1500);
       }
     } catch (err) {
       console.error('Login error:', err);

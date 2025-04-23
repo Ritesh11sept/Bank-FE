@@ -1,107 +1,97 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-// Determine environment
-const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
-const API_BASE_URL = isProduction
-  ? 'https://financeseerbe.vercel.app'
-  : 'http://localhost:9000';
-
-console.log(`API using base URL: ${API_BASE_URL}`);
-
-// Add this helper function to safely handle tag invalidation
-const safeInvalidatesTags = (tags) => {
-  if (!tags) return [];
-  return Array.isArray(tags) ? tags.map(tag => 
-    typeof tag === 'string' ? { type: tag } : tag
-  ) : [];
-};
-
-// Create API with fixed configuration to prevent invalidatesTags errors
 export const api = createApi({
-  reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
+  baseQuery: fetchBaseQuery({
+    baseUrl: import.meta.env.VITE_BASE_URL || 'http://localhost:9000',
+    prepareHeaders: (headers, { getState, endpoint }) => {
+      headers.set('Accept', 'application/json');
       headers.set('Content-Type', 'application/json');
+
+      const token = localStorage.getItem('token');
+      const adminToken = localStorage.getItem('adminToken');
+
+      if (adminToken && endpoint.startsWith('admin')) {
+        headers.set('Authorization', `Bearer ${adminToken}`);
+        console.log('Using admin token for admin endpoint:', endpoint);
+      } else if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+        console.log('Using user token for endpoint:', endpoint);
+      }
+
+      console.log('Request Headers:', Object.fromEntries(headers.entries()));
+      console.log('Endpoint:', endpoint);
+
       return headers;
     },
-    credentials: 'include',
   }),
+  reducerPath: "main",
   tagTypes: [
-    'User',
-    'Transactions',
-    'Pots',
-    'Stats',
-    'Rewards',
-    'Tickets',
-    'Products',
+    "Products", "Transactions", "Pots", "User", "Rewards", "Notifications",
+    "AdminData", "SystemStats", "Users", "TransactionStats",
+    "ActiveUsers", "FlaggedTransactions", "PotStats"
   ],
-  endpoints: (builder) => ({
-    getProducts: builder.query({
+  endpoints: (build) => ({
+    getProducts: build.query({
       query: () => "product/products/",
       providesTags: ["Products"],
     }),
-    getTransactions: builder.query({
+    getTransactions: build.query({
       query: () => "transaction/transactions/",
       providesTags: ["Transactions"],
     }),
 
-    getPots: builder.query({
+    getPots: build.query({
       query: () => "pots",
       providesTags: ["Pots"],
       transformErrorResponse: (response) =>
         response.data?.message || 'Failed to load pots',
     }),
 
-    createPot: builder.mutation({
+    createPot: build.mutation({
       query: (pot) => ({
         url: "pots",
         method: "POST",
         body: pot,
       }),
-      invalidatesTags: safeInvalidatesTags(["Pots"]),
+      invalidatesTags: ["Pots"],
     }),
 
-    depositToPot: builder.mutation({
+    depositToPot: build.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/deposit`,
         method: "POST",
         body: { amount },
       }),
-      invalidatesTags: safeInvalidatesTags(["Pots"]),
+      invalidatesTags: ["Pots"],
     }),
 
-    withdrawFromPot: builder.mutation({
+    withdrawFromPot: build.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/withdraw`,
         method: "POST",
         body: { amount },
       }),
-      invalidatesTags: safeInvalidatesTags(["Pots"]),
+      invalidatesTags: ["Pots"],
     }),
 
-    updatePotGoal: builder.mutation({
+    updatePotGoal: build.mutation({
       query: ({ potId, data }) => ({
         url: `/pots/${potId}/goal`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: safeInvalidatesTags(["Pots"]),
+      invalidatesTags: ["Pots"],
     }),
 
-    deletePot: builder.mutation({
+    deletePot: build.mutation({
       query: (id) => ({
         url: `pots/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: safeInvalidatesTags(["Pots"]),
+      invalidatesTags: ["Pots"],
     }),
 
-    registerUser: builder.mutation({
+    registerUser: build.mutation({
       query: (userData) => {
         console.log('Register endpoint called with:', userData);
         return {
@@ -110,10 +100,10 @@ export const api = createApi({
           body: userData,
         };
       },
-      invalidatesTags: safeInvalidatesTags(["User"]),
+      invalidatesTags: ["User"],
     }),
 
-    verifyOTP: builder.mutation({
+    verifyOTP: build.mutation({
       query: (otpData) => ({
         url: 'user/verify-otp',
         method: 'POST',
@@ -121,7 +111,7 @@ export const api = createApi({
       }),
     }),
 
-    extractPANDetails: builder.mutation({
+    extractPANDetails: build.mutation({
       query: (imageData) => ({
         url: 'user/extract-pan-details',
         method: 'POST',
@@ -129,19 +119,16 @@ export const api = createApi({
       }),
     }),
 
-    loginUser: builder.mutation({
-      query: (credentials) => {
-        console.log('Endpoint: loginUser');
-        console.log('Request Headers:', headers => headers);
-        return {
-          url: '/user/login',
-          method: 'POST',
-          body: credentials,
-        };
-      },
+    loginUser: build.mutation({
+      query: (credentials) => ({
+        url: 'user/login',
+        method: 'POST',
+        body: credentials,
+      }),
+      invalidatesTags: ["User"],
     }),
 
-    getLinkedAccounts: builder.mutation({
+    getLinkedAccounts: build.mutation({
       query: (panData) => ({
         url: 'user/getLinkedAccounts',
         method: 'POST',
@@ -149,7 +136,7 @@ export const api = createApi({
       }),
     }),
 
-    getUserProfile: builder.query({
+    getUserProfile: build.query({
       query: () => "user/profile",
       providesTags: ["User"],
       transformResponse: (response) => {
@@ -162,37 +149,37 @@ export const api = createApi({
       },
     }),
 
-    getUserRewards: builder.query({
+    getUserRewards: build.query({
       query: () => "rewards",
       providesTags: ["Rewards"],
     }),
 
-    updateLoginStreak: builder.mutation({
+    updateLoginStreak: build.mutation({
       query: () => ({
         url: "rewards/login-streak",
         method: "POST",
       }),
-      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
+      invalidatesTags: ["Rewards", "User"],
     }),
 
-    revealScratchCard: builder.mutation({
+    revealScratchCard: build.mutation({
       query: (cardId) => ({
         url: `rewards/scratch-card/${cardId}`,
         method: "POST",
       }),
-      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
+      invalidatesTags: ["Rewards", "User"],
     }),
 
-    submitGameScore: builder.mutation({
+    submitGameScore: build.mutation({
       query: (scoreData) => ({
         url: "rewards/game-score",
         method: "POST",
         body: scoreData,
       }),
-      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
+      invalidatesTags: ["Rewards", "User"],
     }),
 
-    getNotifications: builder.query({
+    getNotifications: build.query({
       query: () => "rewards/notifications",
       providesTags: ["Notifications"],
       transformResponse: (response) => {
@@ -201,44 +188,44 @@ export const api = createApi({
       },
     }),
 
-    markNotificationsRead: builder.mutation({
+    markNotificationsRead: build.mutation({
       query: (data) => ({
         url: "rewards/notifications/read",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: safeInvalidatesTags(["Notifications"]),
+      invalidatesTags: ["Notifications"],
     }),
 
-    getPotReward: builder.mutation({
+    getPotReward: build.mutation({
       query: (data) => ({
         url: "rewards/pot-reward",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
+      invalidatesTags: ["Rewards", "User"],
     }),
 
-    transferMoney: builder.mutation({
+    transferMoney: build.mutation({
       query: (transferData) => ({
         url: "user/transfer",
         method: "POST",
         body: transferData,
       }),
-      invalidatesTags: safeInvalidatesTags(["User", "Transactions"]),
+      invalidatesTags: ["User", "Transactions"],
     }),
 
-    getUserTransactions: builder.query({
+    getUserTransactions: build.query({
       query: () => "user/transactions",
       providesTags: ["Transactions"],
     }),
 
-    getAllBankUsers: builder.query({
+    getAllBankUsers: build.query({
       query: () => "user/all-users",
       providesTags: ["User"],
     }),
 
-    adminLogin: builder.mutation({
+    adminLogin: build.mutation({
       query: (credentials) => {
         console.log('Admin login attempt with:', credentials);
         return {
@@ -265,67 +252,67 @@ export const api = createApi({
       },
     }),
 
-    getAllUsers: builder.query({
+    getAllUsers: build.query({
       query: () => "admin/users",
       providesTags: ["AdminData", "Users"],
     }),
 
-    getUserDetails: builder.query({
+    getUserDetails: build.query({
       query: (userId) => `admin/users/${userId}`,
-      providesTags: (result, error, id) => safeInvalidatesTags([
+      providesTags: (result, error, id) => [
         { type: "AdminData", id },
         { type: "User", id }
-      ]),
+      ],
     }),
 
-    getSystemStats: builder.query({
+    getSystemStats: build.query({
       query: () => "admin/stats",
       providesTags: ["AdminData", "SystemStats"],
     }),
 
-    getTransactionsStats: builder.query({
+    getTransactionsStats: build.query({
       query: () => "admin/transactions-stats",
       providesTags: ["AdminData", "TransactionStats"],
     }),
 
-    getActiveUsers: builder.query({
+    getActiveUsers: build.query({
       query: () => '/user/admin/active-users',
       providesTags: ['ActiveUsers'],
     }),
 
-    getFlaggedTransactions: builder.query({
+    getFlaggedTransactions: build.query({
       query: () => "admin/flagged-transactions",
       providesTags: ["AdminData", "FlaggedTransactions"],
     }),
 
-    getPotStatistics: builder.query({
+    getPotStatistics: build.query({
       query: () => "admin/pot-statistics",
       providesTags: ["AdminData", "PotStats"],
     }),
 
-    toggleUserStatus: builder.mutation({
+    toggleUserStatus: build.mutation({
       query: ({ userId, status }) => ({
         url: `admin/users/${userId}/status`,
         method: "PUT",
         body: { status },
       }),
-      invalidatesTags: (result, error, arg) => safeInvalidatesTags([
+      invalidatesTags: (result, error, arg) => [
         "AdminData",
         "Users",
         { type: "User", id: arg.userId }
-      ]),
+      ],
     }),
 
-    addSystemAlert: builder.mutation({
+    addSystemAlert: build.mutation({
       query: (alertData) => ({
         url: "admin/alerts",
         method: "POST",
         body: alertData,
       }),
-      invalidatesTags: safeInvalidatesTags(["AdminData"]),
+      invalidatesTags: ["AdminData"],
     }),
 
-    getDetailedTransactions: builder.query({
+    getDetailedTransactions: build.query({
       query: () => "transaction/detailed-transactions",
       providesTags: ["Transactions"],
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
