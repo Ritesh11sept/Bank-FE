@@ -1,26 +1,36 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { API_BASE_URL } from '../config/apiConfig';
 
-// Define a safe invalidation helper function
+// Determine environment
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
+const API_BASE_URL = isProduction
+  ? 'https://financeseerbe.vercel.app'
+  : 'http://localhost:9000';
+
+console.log(`Admin API using base URL: ${API_BASE_URL}`);
+
+// Add this helper function to safely handle tag invalidation
 const safeInvalidatesTags = (tags) => {
-  // Ensure we always return a valid array of tag objects
+  if (!tags) return [];
   return Array.isArray(tags) ? tags.map(tag => 
     typeof tag === 'string' ? { type: tag } : tag
   ) : [];
 };
 
+// Create admin API with proper configuration
 export const adminApi = createApi({
-  baseQuery: fetchBaseQuery({ 
+  reducerPath: 'adminApi',
+  baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers) => {
       const token = localStorage.getItem('adminToken');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
+      headers.set('Content-Type', 'application/json');
       return headers;
     },
+    credentials: 'include',
   }),
-  reducerPath: 'adminApi',
   tagTypes: [
     'AdminStats',
     'AdminUsers',
@@ -29,16 +39,15 @@ export const adminApi = createApi({
     'FlaggedTransactions',
     'PotStats',
   ],
-  endpoints: (build) => ({
-    adminLogin: build.mutation({
+  endpoints: (builder) => ({
+    adminLogin: builder.mutation({
       query: (credentials) => ({
-        url: `/user/admin/login`,
+        url: '/user/admin/login',
         method: 'POST',
         body: credentials,
       }),
-      invalidatesTags: safeInvalidatesTags([]),
     }),
-    getUsers: build.query({
+    getUsers: builder.query({
       query: () => ({
         url: "user/all-users",
         method: 'GET',
@@ -55,12 +64,12 @@ export const adminApi = createApi({
       }
     }),
 
-    getUserById: build.query({
+    getUserById: builder.query({
       query: (userId) => `user/${userId}`,
       providesTags: (result, error, id) => [{ type: "AdminUsers", id }],
     }),
     
-    updateUserStatus: build.mutation({
+    updateUserStatus: builder.mutation({
       query: ({ userId, status }) => ({
         url: `user/${userId}/status`,
         method: "PUT",
@@ -69,7 +78,7 @@ export const adminApi = createApi({
       invalidatesTags: safeInvalidatesTags(["AdminUsers", "AdminStats"]),
     }),
     
-    getTransactions: build.query({
+    getTransactions: builder.query({
       query: () => ({
         url: "transaction/transactions",
         method: 'GET'
@@ -85,7 +94,7 @@ export const adminApi = createApi({
       providesTags: ["AdminTransactions"],
     }),
     
-    getTransactionStats: build.query({
+    getTransactionStats: builder.query({
       query: () => ({
         url: "transaction/transactions",
         method: 'GET'
@@ -144,7 +153,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getFlaggedTransactions: build.query({
+    getFlaggedTransactions: builder.query({
       query: () => "transaction/transactions",
       providesTags: ["FlaggedTransactions"],
       transformResponse: (response) => {
@@ -164,7 +173,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getPotStats: build.query({
+    getPotStats: builder.query({
       query: () => ({
         url: "pots",
         method: 'GET',
@@ -212,7 +221,7 @@ export const adminApi = createApi({
       },
     }),
     
-    getTickets: build.query({
+    getTickets: builder.query({
       query: () => ({
         url: "tickets",
         method: 'GET',
@@ -245,7 +254,7 @@ export const adminApi = createApi({
       providesTags: ["AdminTickets"],
     }),
 
-    getTicketById: build.query({
+    getTicketById: builder.query({
       query: (ticketId) => `tickets/${ticketId}`,
       providesTags: (result, error, id) => [{ type: "AdminTickets", id }],
       transformErrorResponse: (error) => {
@@ -254,7 +263,7 @@ export const adminApi = createApi({
       }
     }),
     
-    updateTicketStatus: build.mutation({
+    updateTicketStatus: builder.mutation({
       query: ({ ticketId, status }) => ({
         url: `tickets/${ticketId}/status`,
         method: 'PATCH',
@@ -263,7 +272,7 @@ export const adminApi = createApi({
       invalidatesTags: safeInvalidatesTags(["AdminTickets"]),
     }),
 
-    replyToTicket: build.mutation({
+    replyToTicket: builder.mutation({
       query: ({ ticketId, message }) => ({
         url: `tickets/${ticketId}/messages`,
         method: 'POST',
@@ -272,7 +281,7 @@ export const adminApi = createApi({
       invalidatesTags: safeInvalidatesTags(["AdminTickets"]),
     }),
     
-    getAdminStats: build.query({
+    getAdminStats: builder.query({
       query: () => ({
         url: "user/admin/stats",
         method: 'GET',
@@ -284,7 +293,7 @@ export const adminApi = createApi({
       }
     }),
 
-    getAdminDashboardData: build.query({
+    getAdminDashboardData: builder.query({
       query: () => "transaction/transactions",
       providesTags: ["AdminStats", "AdminUsers", "AdminTransactions", "PotStats"],
       transformResponse: (transactions, meta, arg) => {

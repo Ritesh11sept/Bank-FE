@@ -1,26 +1,36 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { API_BASE_URL } from '../config/apiConfig';
 
-// Define a safe invalidation helper function
+// Determine environment
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
+const API_BASE_URL = isProduction
+  ? 'https://financeseerbe.vercel.app'
+  : 'http://localhost:9000';
+
+console.log(`API using base URL: ${API_BASE_URL}`);
+
+// Add this helper function to safely handle tag invalidation
 const safeInvalidatesTags = (tags) => {
-  // Ensure we always return a valid array of tag objects
+  if (!tags) return [];
   return Array.isArray(tags) ? tags.map(tag => 
     typeof tag === 'string' ? { type: tag } : tag
   ) : [];
 };
 
+// Create API with fixed configuration to prevent invalidatesTags errors
 export const api = createApi({
+  reducerPath: 'api',
   baseQuery: fetchBaseQuery({ 
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
+      headers.set('Content-Type', 'application/json');
       return headers;
     },
+    credentials: 'include',
   }),
-  reducerPath: 'adminApi',
   tagTypes: [
     'User',
     'Transactions',
@@ -30,24 +40,24 @@ export const api = createApi({
     'Tickets',
     'Products',
   ],
-  endpoints: (build) => ({
-    getProducts: build.query({
+  endpoints: (builder) => ({
+    getProducts: builder.query({
       query: () => "product/products/",
       providesTags: ["Products"],
     }),
-    getTransactions: build.query({
+    getTransactions: builder.query({
       query: () => "transaction/transactions/",
       providesTags: ["Transactions"],
     }),
 
-    getPots: build.query({
+    getPots: builder.query({
       query: () => "pots",
       providesTags: ["Pots"],
       transformErrorResponse: (response) =>
         response.data?.message || 'Failed to load pots',
     }),
 
-    createPot: build.mutation({
+    createPot: builder.mutation({
       query: (pot) => ({
         url: "pots",
         method: "POST",
@@ -56,7 +66,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
-    depositToPot: build.mutation({
+    depositToPot: builder.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/deposit`,
         method: "POST",
@@ -65,7 +75,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
-    withdrawFromPot: build.mutation({
+    withdrawFromPot: builder.mutation({
       query: ({ id, amount }) => ({
         url: `pots/${id}/withdraw`,
         method: "POST",
@@ -74,7 +84,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
-    updatePotGoal: build.mutation({
+    updatePotGoal: builder.mutation({
       query: ({ potId, data }) => ({
         url: `/pots/${potId}/goal`,
         method: "PUT",
@@ -83,7 +93,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
-    deletePot: build.mutation({
+    deletePot: builder.mutation({
       query: (id) => ({
         url: `pots/${id}`,
         method: "DELETE",
@@ -91,7 +101,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Pots"]),
     }),
 
-    registerUser: build.mutation({
+    registerUser: builder.mutation({
       query: (userData) => {
         console.log('Register endpoint called with:', userData);
         return {
@@ -103,7 +113,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["User"]),
     }),
 
-    verifyOTP: build.mutation({
+    verifyOTP: builder.mutation({
       query: (otpData) => ({
         url: 'user/verify-otp',
         method: 'POST',
@@ -111,7 +121,7 @@ export const api = createApi({
       }),
     }),
 
-    extractPANDetails: build.mutation({
+    extractPANDetails: builder.mutation({
       query: (imageData) => ({
         url: 'user/extract-pan-details',
         method: 'POST',
@@ -119,20 +129,19 @@ export const api = createApi({
       }),
     }),
 
-    loginUser: build.mutation({
+    loginUser: builder.mutation({
       query: (credentials) => {
         console.log('Endpoint: loginUser');
         console.log('Request Headers:', headers => headers);
         return {
-          url: `/user/login`,
+          url: '/user/login',
           method: 'POST',
           body: credentials,
         };
       },
-      invalidatesTags: safeInvalidatesTags([]),
     }),
 
-    getLinkedAccounts: build.mutation({
+    getLinkedAccounts: builder.mutation({
       query: (panData) => ({
         url: 'user/getLinkedAccounts',
         method: 'POST',
@@ -140,7 +149,7 @@ export const api = createApi({
       }),
     }),
 
-    getUserProfile: build.query({
+    getUserProfile: builder.query({
       query: () => "user/profile",
       providesTags: ["User"],
       transformResponse: (response) => {
@@ -153,12 +162,12 @@ export const api = createApi({
       },
     }),
 
-    getUserRewards: build.query({
+    getUserRewards: builder.query({
       query: () => "rewards",
       providesTags: ["Rewards"],
     }),
 
-    updateLoginStreak: build.mutation({
+    updateLoginStreak: builder.mutation({
       query: () => ({
         url: "rewards/login-streak",
         method: "POST",
@@ -166,7 +175,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
-    revealScratchCard: build.mutation({
+    revealScratchCard: builder.mutation({
       query: (cardId) => ({
         url: `rewards/scratch-card/${cardId}`,
         method: "POST",
@@ -174,7 +183,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
-    submitGameScore: build.mutation({
+    submitGameScore: builder.mutation({
       query: (scoreData) => ({
         url: "rewards/game-score",
         method: "POST",
@@ -183,7 +192,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
-    getNotifications: build.query({
+    getNotifications: builder.query({
       query: () => "rewards/notifications",
       providesTags: ["Notifications"],
       transformResponse: (response) => {
@@ -192,7 +201,7 @@ export const api = createApi({
       },
     }),
 
-    markNotificationsRead: build.mutation({
+    markNotificationsRead: builder.mutation({
       query: (data) => ({
         url: "rewards/notifications/read",
         method: "POST",
@@ -201,7 +210,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Notifications"]),
     }),
 
-    getPotReward: build.mutation({
+    getPotReward: builder.mutation({
       query: (data) => ({
         url: "rewards/pot-reward",
         method: "POST",
@@ -210,7 +219,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["Rewards", "User"]),
     }),
 
-    transferMoney: build.mutation({
+    transferMoney: builder.mutation({
       query: (transferData) => ({
         url: "user/transfer",
         method: "POST",
@@ -219,17 +228,17 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["User", "Transactions"]),
     }),
 
-    getUserTransactions: build.query({
+    getUserTransactions: builder.query({
       query: () => "user/transactions",
       providesTags: ["Transactions"],
     }),
 
-    getAllBankUsers: build.query({
+    getAllBankUsers: builder.query({
       query: () => "user/all-users",
       providesTags: ["User"],
     }),
 
-    adminLogin: build.mutation({
+    adminLogin: builder.mutation({
       query: (credentials) => {
         console.log('Admin login attempt with:', credentials);
         return {
@@ -256,12 +265,12 @@ export const api = createApi({
       },
     }),
 
-    getAllUsers: build.query({
+    getAllUsers: builder.query({
       query: () => "admin/users",
       providesTags: ["AdminData", "Users"],
     }),
 
-    getUserDetails: build.query({
+    getUserDetails: builder.query({
       query: (userId) => `admin/users/${userId}`,
       providesTags: (result, error, id) => safeInvalidatesTags([
         { type: "AdminData", id },
@@ -269,32 +278,32 @@ export const api = createApi({
       ]),
     }),
 
-    getSystemStats: build.query({
+    getSystemStats: builder.query({
       query: () => "admin/stats",
       providesTags: ["AdminData", "SystemStats"],
     }),
 
-    getTransactionsStats: build.query({
+    getTransactionsStats: builder.query({
       query: () => "admin/transactions-stats",
       providesTags: ["AdminData", "TransactionStats"],
     }),
 
-    getActiveUsers: build.query({
+    getActiveUsers: builder.query({
       query: () => '/user/admin/active-users',
       providesTags: ['ActiveUsers'],
     }),
 
-    getFlaggedTransactions: build.query({
+    getFlaggedTransactions: builder.query({
       query: () => "admin/flagged-transactions",
       providesTags: ["AdminData", "FlaggedTransactions"],
     }),
 
-    getPotStatistics: build.query({
+    getPotStatistics: builder.query({
       query: () => "admin/pot-statistics",
       providesTags: ["AdminData", "PotStats"],
     }),
 
-    toggleUserStatus: build.mutation({
+    toggleUserStatus: builder.mutation({
       query: ({ userId, status }) => ({
         url: `admin/users/${userId}/status`,
         method: "PUT",
@@ -307,7 +316,7 @@ export const api = createApi({
       ]),
     }),
 
-    addSystemAlert: build.mutation({
+    addSystemAlert: builder.mutation({
       query: (alertData) => ({
         url: "admin/alerts",
         method: "POST",
@@ -316,7 +325,7 @@ export const api = createApi({
       invalidatesTags: safeInvalidatesTags(["AdminData"]),
     }),
 
-    getDetailedTransactions: build.query({
+    getDetailedTransactions: builder.query({
       query: () => "transaction/detailed-transactions",
       providesTags: ["Transactions"],
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
