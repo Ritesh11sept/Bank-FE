@@ -72,22 +72,69 @@ const RegisterModal = ({ isOpen, onClose }) => {
     try {
       setLoading(true);
       
-      // In a real app, send the image to the backend for OCR processing
-      const response = await extractPANDetails(imageData).unwrap();
-      
-      if (response.success) {
-        const { name, pan, dateOfBirth } = response.data;
+      if (imageData.requiresBackendOCR) {
+        // If local OCR failed, use the extracted info we already have
+        // and attempt to send to backend, but handle gracefully if it fails
+        try {
+          const response = await extractPANDetails(imageData).unwrap();
+          
+          if (response.success) {
+            const { name, pan, dateOfBirth } = response.data;
+            // Process data as before
+            const dob = new Date(dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            if (today.getMonth() < dob.getMonth() || 
+                (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+              age--;
+            }
+            
+            if (age < 18) {
+              showToast(translations.registration.ageRestriction, 'error');
+              setLoading(false);
+              return;
+            }
+            
+            setUserData({
+              ...userData,
+              name: name || '',
+              pan: pan || '',
+              dateOfBirth: dateOfBirth || '',
+              age: age.toString() || '',
+            });
+            
+            setStep(2); // Move to registration form
+          }
+        } catch (backendError) {
+          console.error('Backend OCR failed, using local data:', backendError);
+          // Continue with local data or manual entry
+          showToast(translations.registration.fallbackToManual || "Backend processing failed. Please enter details manually.");
+          setStep(2); // Move to registration form anyway
+        }
+      } else {
+        // Use the local OCR results from PANVerification component
+        const { name, pan, dateOfBirth, age } = imageData;
         
-        // Calculate age from date of birth
-        const dob = new Date(dateOfBirth);
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        if (today.getMonth() < dob.getMonth() || 
-            (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
-          age--;
+        // Verify we have at least a PAN number
+        if (!pan) {
+          showToast(translations.registration.panRequired || "PAN number is required.");
+          setLoading(false);
+          return;
         }
         
-        if (age < 18) {
+        // Calculate age if we have DOB but no age
+        let calculatedAge = age;
+        if (dateOfBirth && !age) {
+          const dob = new Date(dateOfBirth);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - dob.getFullYear();
+          if (today.getMonth() < dob.getMonth() || 
+              (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+            calculatedAge--;
+          }
+        }
+        
+        if (calculatedAge && Number(calculatedAge) < 18) {
           showToast(translations.registration.ageRestriction, 'error');
           setLoading(false);
           return;
@@ -98,16 +145,14 @@ const RegisterModal = ({ isOpen, onClose }) => {
           name: name || '',
           pan: pan || '',
           dateOfBirth: dateOfBirth || '',
-          age: age.toString() || '',
+          age: calculatedAge ? calculatedAge.toString() : '',
         });
         
         setStep(2); // Move to registration form
-      } else {
-        throw new Error(response.message || translations.registration.panExtractionFailed);
       }
     } catch (error) {
       console.error('PAN verification error:', error);
-      showToast(translations.registration.panExtractionFailed);
+      showToast(translations.registration.panExtractionFailed || "Failed to extract PAN details. Please try again or enter manually.");
     } finally {
       setLoading(false);
     }
