@@ -16,5 +16,5 @@ console.log(`API URL: ${API_BASE_URL}`);
 // Export other API related configuration if needed
 export const API_CONFIG = {
   timeout: 30000, // 30 seconds
-  withCredentials: true,
+  credentials: 'include',
 };
